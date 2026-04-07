@@ -48,11 +48,17 @@ These are the highest-priority next steps based on the current scope.
 4. Introduce a cleaner mapping from panel size `N` to arrival rates `\lambda_i`.
 5. Calibrate assumptions once scheduling-process details and Columbia Doctors data are available.
 
+## Document Review Follow-Up
+
+The standalone review of the initial formulation note identified three document-level follow-ups:
+
+1. Update the metrics section so it matches the implemented simulator distinction between `balked`, `no_offer`, and `not_booked`.
+2. Add a short front-end reader guide or abstract that states clearly what the note is, what it is not, and who should read which sections.
+3. Add an explicit scope/status section so a supervisor can immediately see what is already in the simulator versus what remains future work.
+
 ## Most Recent Completed Task
 
-- Added author credit to the formal note:
-  - Alexandre SEPULVEDA de DIETRICH
-  - Under the supervision of Pr. Carri Chan
+- Reviewed the initial formulation note as a standalone document and extracted follow-up document tasks.
 
 Commit:
 
