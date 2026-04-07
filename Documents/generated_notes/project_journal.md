@@ -59,10 +59,9 @@ The standalone review of the initial formulation note identified three document-
 
 ## Most Recent Completed Task
 
-- Reparameterized the two-class demand setup around a single total arrival rate `\lambda` and a class-1 share `p`, with `\lambda_1 = p\lambda` and `\lambda_2 = (1-p)\lambda`.
-- Updated the sweep helper, the formal note, the status memo, and the notebooks so the front-end analysis now varies total demand through `\lambda` rather than entering `\lambda_1` and `\lambda_2` separately.
-- Re-executed the simulation, behavior, and policy notebooks and recompiled the LaTeX note after the change.
+- Refreshed the notebooks so their reader-facing tables and setup summaries now expose `\lambda` and `p` directly, with `\lambda_1` and `\lambda_2` shown only as derived quantities where useful.
+- Re-executed the simulation, behavior, and policy notebooks after the presentation cleanup.
 
 Commit:
 
-- to be recorded in git history for this total-arrival-rate parameterization change
+- to be recorded in git history for this notebook refresh
