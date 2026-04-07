@@ -38,15 +38,15 @@ It is **not yet fully compliant** with the broader Phase 1 ambitions in the emai
 | Email requirement | Status | Notes |
 | --- | --- | --- |
 | Two types of patients arrive to call center to book | Implemented | The engine supports two classes now and is already general enough for more than two. |
-| Scheduling-delay sensitivity for booking | Implemented | `b_i(\tau^{book})` is the class-specific booking-decline function. |
-| Scheduling-delay sensitivity for no-shows | Implemented | `\xi_i(\tau^{book})` uses the original offered delay, which is the correct formulation for this problem. |
+| Scheduling-delay sensitivity for booking | Implemented | `b_i(\tau)` is the class-specific booking-decline function. |
+| Scheduling-delay sensitivity for no-shows | Implemented | `\xi_i(\tau)` uses the original offered delay, which is the correct formulation for this problem. |
 | Cancellations matter operationally | Implemented | Patients can pre-cancel before the appointment and reopen slots. |
 | FCFS scheduling policy | Implemented | This remains the baseline policy. |
 | Reserve `x%` / `100-x%` capacity by type | Implemented | Added a strict reserved-capacity policy. Shares are converted to daily slot counts. |
 | Max booking window `k_1`, `k_2` by type | Implemented | Added a class-specific booking-window policy. |
 | Add more scheduling policies later | Implemented structurally | The simulator uses a policy interface and can accept additional slot-selection rules. |
 | Add more customer types later | Implemented structurally | The core is not hard-coded to two types. |
-| Access metric such as `P(time to appointment < 30 days)` | Implemented | Added configurable access-target reporting based on `\tau^{book} < T_access`. |
+| Access metric such as `P(time to appointment < 30 days)` | Implemented | Added configurable access-target reporting based on `\tau < T_access`. |
 | Provider utilization and empty-slot metrics | Implemented | Booked-slot utilization, attended-slot utilization, no-show slots, and empty slots are reported. |
 | Financial performance by payer mix | Not yet implemented | No revenue, cost, or payer-class layer exists yet. |
 | Overbooking policies | Not yet implemented | Not yet modeled. |
@@ -65,12 +65,12 @@ The current engine is a rolling-horizon discrete-event appointment simulation wi
 - slot-by-slot event progression
 - class-specific Poisson arrivals
 - explicit slot-level calendar state
-- explicit storage of the original booking delay `\tau^{book}`
+- explicit storage of the original offered delay `\tau`
 
 The current patient class object is:
 
 \[
-C_i = \{\lambda_i, b_i(\tau^{book}), \phi_i, \xi_i(\tau^{book})\}.
+C_i = \{\lambda_i, b_i(\tau), \phi_i, \xi_i(\tau)\}.
 \]
 
 This is already aligned with the literature reviewed so far.
@@ -102,8 +102,8 @@ At the aggregate and class-specific levels, the simulator currently reports:
 - mean served delay
 - `served / booked`
 - `booked / arrival`
-- `P(\tau^{book} < T_access \mid arrival)`
-- `P(\tau^{book} < T_access \mid booked)`
+- `P(\tau < T_access \mid arrival)`
+- `P(\tau < T_access \mid booked)`
 - booked-slot utilization
 - attended-slot utilization
 - empty slots
@@ -219,8 +219,8 @@ The simplest first extension is not a detailed messaging workflow.
 It is a behavioral intervention layer that changes one or more of:
 
 - `\phi_i`
-- `\xi_i(\tau^{book})`
-- possibly `b_i(\tau^{book})`
+- `\xi_i(\tau)`
+- possibly `b_i(\tau)`
 
 This would let the working group test reminder strategies before modeling the exact operational process.
 

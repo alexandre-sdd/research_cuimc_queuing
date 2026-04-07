@@ -126,7 +126,7 @@ Y_t(r,m).
 Interpretation:
 \begin{itemize}[nosep]
     \item $Y_t(r,m)=0$ if slot $(D+r,m)$ is currently open,
-    \item $Y_t(r,m)=\left(i,\tau^{\mathrm{book}},c\right)$ if slot $(D+r,m)$ is occupied by a class-$i$ patient whose original booking delay was $\tau^{\mathrm{book}}$, with cancellation marker $c$.
+    \item $Y_t(r,m)=\left(i,\tau,c\right)$ if slot $(D+r,m)$ is occupied by a class-$i$ patient whose original offered delay was $\tau$, with cancellation marker $c$.
 \end{itemize}
 
 The cancellation marker $c$ is either:
@@ -174,16 +174,16 @@ The index $r$ is a \emph{residual delay}, not a booking-time delay.
 
 Now define the behavioral delay variable separately:
 \[
-\tau^{\mathrm{book}}
+\tau
 =
 \text{delay in days between the booking day and the appointment day offered to the patient.}
 \]
 
-If a patient arrives on day $d$ and is offered a slot on day $d+\tau^{\mathrm{book}}$, then:
+If a patient arrives on day $d$ and is offered a slot on day $d+\tau$, then:
 \begin{itemize}[nosep]
-    \item $b_i(\tau^{\mathrm{book}})$ is the probability that class-$i$ declines the offer,
-    \item if the patient accepts, $\tau^{\mathrm{book}}$ is stored with the booking,
-    \item $\xi_i(\tau^{\mathrm{book}})$ is the no-show probability used at appointment time if the patient remains scheduled.
+    \item $b_i(\tau)$ is the probability that class-$i$ declines the offer,
+    \item if the patient accepts, $\tau$ is stored with the booking,
+    \item $\xi_i(\tau)$ is the no-show probability used at appointment time if the patient remains scheduled.
 \end{itemize}
 
 This separation is the key modeling choice.
@@ -194,19 +194,19 @@ Booking delay belongs to the behavioral rules.
 
 Each class $i \in \{1,2\}$ is described by
 \[
-C_i = \{\lambda_i, b_i(\tau^{\mathrm{book}}), \phi_i, \xi_i(\tau^{\mathrm{book}})\}.
+C_i = \{\lambda_i, b_i(\tau), \phi_i, \xi_i(\tau)\}.
 \]
 
 The interpretation is:
 \begin{itemize}[nosep]
     \item $\lambda_i$: expected arrival rate of class-$i$ requests per slot,
-    \item $b_i(\tau^{\mathrm{book}})$: probability the patient declines the offered slot because the offered delay is too large,
+    \item $b_i(\tau)$: probability the patient declines the offered slot because the offered delay is too large,
     \item $\phi_i$: one-shot pre-appointment cancellation probability after booking,
-    \item $\xi_i(\tau^{\mathrm{book}})$: no-show probability at appointment time, conditional on the patient still being scheduled.
+    \item $\xi_i(\tau)$: no-show probability at appointment time, conditional on the patient still being scheduled.
 \end{itemize}
 
 In the current first version, $\phi_i$ is constant within class.
-Later versions may generalize this to $\phi_i(\tau^{\mathrm{book}})$ if cancellation is also delay-sensitive.
+Later versions may generalize this to $\phi_i(\tau)$ if cancellation is also delay-sensitive.
 
 \section{Event Dynamics}
 
@@ -224,18 +224,18 @@ At each active slot $(D,s)$, the simulator executes the following steps.
     \item For each arrival, call the allocation policy to select an open future slot.
     \item If a slot on day $D+r$ is offered, interpret
     \[
-    \tau^{\mathrm{book}} = r.
+    \tau = r.
     \]
     \item The patient accepts with probability
     \[
-    1 - b_i(\tau^{\mathrm{book}}).
+    1 - b_i(\tau).
     \]
-    \item If the patient books and $\tau^{\mathrm{book}} \ge 1$, then with probability $\phi_i$ a cancellation day is sampled uniformly from the days strictly before the appointment day.
+    \item If the patient books and $\tau \ge 1$, then with probability $\phi_i$ a cancellation day is sampled uniformly from the days strictly before the appointment day.
     \item When the active slot is served, the patient in that slot, if any, attends with probability
     \[
-    1 - \xi_i(\tau^{\mathrm{book}}),
+    1 - \xi_i(\tau),
     \]
-    where $\tau^{\mathrm{book}}$ is the original delay stored when the patient booked.
+    where $\tau$ is the original delay stored when the patient booked.
 \end{enumerate}
 
 \subsection{FCFS Baseline Policy}
@@ -317,8 +317,8 @@ In the analytical papers, that congestion variable is usually:
     \item or the number of appointments already ahead in the system.
 \end{itemize}
 
-In the simulator, the explicit-calendar analog is the booking-time delay $\tau^{\mathrm{book}}$.
-That is why $\tau^{\mathrm{book}}$, rather than residual delay $r$, should drive
+In the simulator, the explicit-calendar analog is the offered delay $\tau$.
+That is why $\tau$, rather than residual delay $r$, should drive
 $b_i(\cdot)$ and $\xi_i(\cdot)$.
 
 \subsection{Green and Savin (2008)}
@@ -334,7 +334,7 @@ where $k$ is a backlog measure.
 The mapping to the simulator is:
 \begin{itemize}[nosep]
     \item their backlog state corresponds to our explicit slot calendar,
-    \item their delay-sensitive no-show mechanism corresponds to our $\xi_i(\tau^{\mathrm{book}})$,
+    \item their delay-sensitive no-show mechanism corresponds to our $\xi_i(\tau)$,
     \item their stylized queue-length state is refined into the explicit schedule $Y_t(r,m)$.
 \end{itemize}
 
@@ -402,7 +402,7 @@ Liu and Ziya (2014) & queue length in $M/M/1$ or $M/D/1$ style models & congesti
 \addlinespace
 Liu (2015) & queue/window state with finite scheduling window $K$ & delay implied by admissible backlog at booking & optimization over window size rather than fixed-horizon simulation \\
 \addlinespace
-This simulator & explicit rolling calendar $Y_t(r,m)$ plus derived $X_{i,r}^D$ & original booking delay $\tau^{\mathrm{book}}$ & richer operational detail, two classes, explicit cancellation holes, policy plug points \\
+This simulator & explicit rolling calendar $Y_t(r,m)$ plus derived $X_{i,r}^D$ & original offered delay $\tau$ & richer operational detail, two classes, explicit cancellation holes, policy plug points \\
 \bottomrule
 \end{tabular}
 \normalsize
@@ -416,7 +416,7 @@ This formulation is the most appropriate starting point for the present project 
 
 The patient decides whether to book when seeing an offered delay.
 If they book, their future no-show behavior should be tied to that accepted delay.
-That is exactly what $\tau^{\mathrm{book}}$ captures.
+That is exactly what $\tau$ captures.
 
 \subsection{2. It Preserves the Literature's Logic While Using an Explicit Calendar}
 
@@ -443,7 +443,7 @@ The calendar state $Y_t(r,m)$ is the right object to carry forward if the projec
 The formulation distinguishes:
 \begin{itemize}[nosep]
     \item \emph{where the system is now}: represented by residual delay $r$ in the state,
-    \item \emph{what delay the patient accepted}: represented by $\tau^{\mathrm{book}}$ in the behavior functions.
+    \item \emph{what delay the patient accepted}: represented by $\tau$ in the behavior functions.
 \end{itemize}
 
 That separation is the cleanest way to avoid conceptual mistakes in both code and analysis.
@@ -452,9 +452,9 @@ That separation is the cleanest way to avoid conceptual mistakes in both code an
 
 The current codebase follows this notation directly:
 \begin{itemize}[nosep]
-    \item the slot calendar stores each patient's class, appointment location, booking day, and $\tau^{\mathrm{book}}$,
+    \item the slot calendar stores each patient's class, appointment location, booking day, and the mathematical delay $\tau$,
     \item the arrival log records the offered delay as \texttt{tau\_offered},
-    \item the cohort and slot logs record the stored booking delay as \texttt{tau\_booked},
+    \item the cohort and slot logs record the same mathematical quantity $\tau$ under the implementation field name \texttt{tau\_booked},
     \item the day-start state log records the residual day offset as \texttt{residual\_delay}.
 \end{itemize}
 
@@ -462,7 +462,7 @@ This is exactly the split recommended above.
 In addition, the simulator now exposes a daily journal with access, booking, cancellation,
 attendance, and utilization measures, and reports the access metric
 \[
-\mathbb{P}\!\left(\tau^{\mathrm{book}} < T_{\mathrm{access}}\right)
+\mathbb{P}\!\left(\tau < T_{\mathrm{access}}\right)
 \]
 for a configurable target such as $T_{\mathrm{access}} = 30$ days.
 

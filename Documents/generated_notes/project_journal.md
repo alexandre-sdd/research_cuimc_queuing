@@ -27,7 +27,7 @@ As of 2026-04-07, the project includes:
 - two patient classes
 - rolling 15-day horizon and 25 slots per day by default
 - slot-level calendar simulation
-- booking-time delay `\tau^{book}` separated from residual-delay state `r`
+- offered delay `\tau` separated from residual-delay state `r`
 - delay-sensitive balking
 - delay-sensitive no-show
 - explicit pre-appointment cancellation
@@ -58,8 +58,8 @@ The standalone review of the initial formulation note identified three document-
 
 ## Most Recent Completed Task
 
-- Reviewed the initial formulation note as a standalone document and extracted follow-up document tasks.
+- Simplified the mathematical notation so the relevant behavioral delay is denoted by `\tau`, with `r` reserved for residual delay in the state.
 
 Commit:
 
-- `c4f1483` `docs: add author credit to simulation note`
+- recorded in git history for the task that implements this notation change
