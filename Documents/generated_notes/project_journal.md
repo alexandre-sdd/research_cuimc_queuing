@@ -59,9 +59,9 @@ The standalone review of the initial formulation note identified three document-
 
 ## Most Recent Completed Task
 
-- Refreshed the notebooks so their reader-facing tables and setup summaries now expose `\lambda` and `p` directly, with `\lambda_1` and `\lambda_2` shown only as derived quantities where useful.
-- Re-executed the simulation, behavior, and policy notebooks after the presentation cleanup.
+- Clarified the behavior-functions notebook so the cancellation plot and table now show the operational interpretation of `\phi_i` explicitly: `0` when `\tau=0` and `\phi_i` when `\tau \ge 1`.
+- Re-executed the behavior-functions notebook after the label cleanup.
 
 Commit:
 
-- to be recorded in git history for this notebook refresh
+- to be recorded in git history for this cancellation-label clarification
