@@ -67,13 +67,23 @@ The current engine is a rolling-horizon discrete-event appointment simulation wi
 - explicit slot-level calendar state
 - explicit storage of the original offered delay `\tau`
 
-The current patient class object is:
+The current front-end arrival parameterization is:
 
 \[
-C_i = \{\lambda_i, b_i(\tau), \phi_i, \xi_i(\tau)\}.
+\lambda_1 = p\lambda,
+\qquad
+\lambda_2 = (1-p)\lambda,
 \]
 
-This is already aligned with the literature reviewed so far.
+where `\lambda` is the total expected arrival rate per slot and `p` is the class-1 arrival share.
+
+The class-specific behavior object remains:
+
+\[
+B_i = \{b_i(\tau), \phi_i, \xi_i(\tau)\}.
+\]
+
+This keeps the first notebook parameterization simple while remaining aligned with the literature reviewed so far.
 
 ### Current policy set
 
@@ -177,13 +187,13 @@ This matches the part of the email that emphasizes immediate operational insight
 
 The supervisor email is framed partly in terms of **panel size `N`**.
 The current simulator does not yet model panel size directly.
-Instead, it models arrival rates `\lambda_i` directly.
+Instead, the current front-end experiments vary total arrival pressure through `\lambda` and allocate that demand across the two classes with a fixed share `p`.
 
 For the current prototype, this is acceptable.
 Operationally, it means:
 
-- today we are sweeping demand pressure through `\lambda_i`
-- later we should map `\lambda_i = N_i \nu_i`, where `\nu_i` is request intensity per panel member
+- today we are sweeping demand pressure through `\lambda` while holding `p` fixed
+- later we should map either `\lambda = N \nu` at the aggregate level or `\lambda_i = N_i \nu_i` at the class level, where `\nu_i` is request intensity per panel member
 
 That is the right next step once calibration data are available.
 
@@ -239,11 +249,11 @@ Then margins can be reported alongside access and utilization.
 
 To connect to the email more directly, the next calibration layer should introduce:
 
-- panel size `N_i`
+- panel size `N` and, if needed, class-specific panels `N_i`
 - per-member request intensity `\nu_i`
-- `\lambda_i = N_i \nu_i`
+- `\lambda = N \nu` together with a class-mix rule, or directly `\lambda_i = N_i \nu_i`
 
-This will make panel-size experiments explicit instead of using `\lambda_i` as a direct proxy.
+This will make panel-size experiments explicit instead of using `\lambda` as a direct proxy for demand pressure.
 
 ### 6. Calibrate to process mapping and real data
 

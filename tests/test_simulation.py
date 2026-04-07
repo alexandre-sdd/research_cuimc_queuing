@@ -10,7 +10,9 @@ from appointment_simulation import (
     behavior_profile_frame,
     constant_probability,
     green_savin_no_show,
+    run_lambda_sweep,
     simulate,
+    split_two_class_arrival_rates,
     step_balking,
 )
 from appointment_simulation.behaviors import exponential_no_show
@@ -240,3 +242,24 @@ def test_green_savin_wrapper_matches_exponential_shape() -> None:
     assert fn(5) > fn(0)
     assert fn(50) < 0.31
     assert fn(200) <= 0.31
+
+
+def test_total_lambda_split_and_sweep_use_class_share_parameterization() -> None:
+    lambda_1, lambda_2 = split_two_class_arrival_rates(total_lambda=0.30, class_1_share=0.6)
+    assert lambda_1 == 0.18
+    assert lambda_2 == 0.12
+
+    frame = run_lambda_sweep(
+        class_configs=make_classes(0.10, 0.08),
+        total_lambdas=[0.20, 0.30],
+        class_1_share=0.6,
+        config=make_config(seed=21),
+        policy=FCFSPolicy(),
+        replications=2,
+        base_seed=50,
+    )
+
+    assert list(frame["lambda_total"].unique()) == [0.20, 0.30]
+    assert set(frame["class_1_share"]) == {0.6}
+    assert set(frame.loc[frame["lambda_total"] == 0.20, "lambda_1"].round(10)) == {0.12}
+    assert set(frame.loc[frame["lambda_total"] == 0.20, "lambda_2"].round(10)) == {0.08}

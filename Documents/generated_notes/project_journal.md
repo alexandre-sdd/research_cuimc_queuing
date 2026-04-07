@@ -46,7 +46,7 @@ These are the highest-priority next steps based on the current scope.
 1. Add explicit overbooking logic and its metrics.
 2. Add reminder / confirmation interventions as parameterized behavior changes.
 3. Add a payer-mix and margin layer for financial analysis.
-4. Introduce a cleaner mapping from panel size `N` to arrival rates `\lambda_i`.
+4. Introduce a cleaner mapping from panel size `N` to the total arrival rate `\lambda` and class mix `p`, or equivalently to class-specific rates `\lambda_i`.
 5. Calibrate assumptions once scheduling-process details and Columbia Doctors data are available.
 
 ## Document Review Follow-Up
@@ -59,9 +59,10 @@ The standalone review of the initial formulation note identified three document-
 
 ## Most Recent Completed Task
 
-- Added docstrings across the simulation package for the main behavior, policy, profile, sweep, and core simulation functions.
-- Validated that the package still passes the test suite after the documentation update.
+- Reparameterized the two-class demand setup around a single total arrival rate `\lambda` and a class-1 share `p`, with `\lambda_1 = p\lambda` and `\lambda_2 = (1-p)\lambda`.
+- Updated the sweep helper, the formal note, the status memo, and the notebooks so the front-end analysis now varies total demand through `\lambda` rather than entering `\lambda_1` and `\lambda_2` separately.
+- Re-executed the simulation, behavior, and policy notebooks and recompiled the LaTeX note after the change.
 
 Commit:
 
-- to be recorded in git history for this documentation pass
+- to be recorded in git history for this total-arrival-rate parameterization change

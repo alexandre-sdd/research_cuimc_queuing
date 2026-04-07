@@ -190,16 +190,43 @@ This separation is the key modeling choice.
 Residual delay belongs to the state.
 Booking delay belongs to the behavioral rules.
 
-\section{Patient Classes}
+\section{Patient Classes and Arrival Mix}
 
-Each class $i \in \{1,2\}$ is described by
+The class-specific behavior of each class $i \in \{1,2\}$ is described by
 \[
-C_i = \{\lambda_i, b_i(\tau), \phi_i, \xi_i(\tau)\}.
+B_i = \{b_i(\tau), \phi_i, \xi_i(\tau)\}.
 \]
 
-The interpretation is:
+In the current two-class prototype, arrivals are parameterized at the system level by
+\[
+\lambda
+=
+\text{total expected arrival rate per slot},
+\qquad
+p \in [0,1]
+=
+\text{share of class-1 demand}.
+\]
+
+The class-specific arrival rates are then induced by
+\[
+\lambda_1 = p\lambda,
+\qquad
+\lambda_2 = (1-p)\lambda.
+\]
+
+Equivalently, the full class objects can still be written as
+\[
+C_i = \{\lambda_i, b_i(\tau), \phi_i, \xi_i(\tau)\},
+\]
+but in the first simulation experiments the primitive demand parameters are
+$(\lambda,p)$ rather than $(\lambda_1,\lambda_2)$.
+
+The interpretation is therefore:
 \begin{itemize}[nosep]
-    \item $\lambda_i$: expected arrival rate of class-$i$ requests per slot,
+    \item $\lambda$: total expected arrival rate per slot,
+    \item $p$: fraction of arrivals belonging to class 1,
+    \item $\lambda_i$: implied arrival rate of class-$i$ requests per slot,
     \item $b_i(\tau)$: probability the patient declines the offered slot because the offered delay is too large,
     \item $\phi_i$: one-shot pre-appointment cancellation probability after booking,
     \item $\xi_i(\tau)$: no-show probability at appointment time, conditional on the patient still being scheduled.
@@ -220,6 +247,7 @@ At each active slot $(D,s)$, the simulator executes the following steps.
     \[
     A_i(D,s) \sim \mathrm{Poisson}(\lambda_i), \qquad i \in \{1,2\}.
     \]
+    In the current parameterization, $\lambda_1=p\lambda$ and $\lambda_2=(1-p)\lambda$.
     \item Randomize the order of individual arrivals within the slot.
     \item For each arrival, call the allocation policy to select an open future slot.
     \item If a slot on day $D+r$ is offered, interpret

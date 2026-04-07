@@ -9,6 +9,15 @@ from .core import PatientClassConfig, SimulationConfig, SimulationResult, simula
 from .policies import AllocationPolicy
 
 
+def split_two_class_arrival_rates(total_lambda: float, class_1_share: float) -> tuple[float, float]:
+    """Split a total two-class arrival rate into class-specific rates using share ``p``."""
+    if total_lambda < 0:
+        raise ValueError("total_lambda must be non-negative")
+    if not 0.0 <= class_1_share <= 1.0:
+        raise ValueError("class_1_share must lie in [0, 1]")
+    return class_1_share * total_lambda, (1.0 - class_1_share) * total_lambda
+
+
 def simulate_replications(
     class_configs: Sequence[PatientClassConfig],
     config: SimulationConfig | None = None,
@@ -54,19 +63,21 @@ def replication_summary_frame(results: Sequence[SimulationResult]) -> pd.DataFra
 
 def run_lambda_sweep(
     class_configs: Sequence[PatientClassConfig],
-    lambda_pairs: Iterable[tuple[float, float]],
+    total_lambdas: Iterable[float],
+    class_1_share: float,
     config: SimulationConfig | None = None,
     policy: AllocationPolicy | None = None,
     replications: int = 1,
     base_seed: int = 0,
 ) -> pd.DataFrame:
-    """Evaluate the simulator over a grid of two-class arrival-rate scenarios."""
+    """Evaluate the simulator over a sweep of total arrival rates with fixed class mix ``p``."""
     class_configs = tuple(class_configs)
     if len(class_configs) < 2:
         raise ValueError("run_lambda_sweep expects at least two patient classes")
 
     frames = []
-    for scenario_index, (lambda_1, lambda_2) in enumerate(lambda_pairs):
+    for scenario_index, total_lambda in enumerate(total_lambdas):
+        lambda_1, lambda_2 = split_two_class_arrival_rates(total_lambda, class_1_share)
         scenario_classes = (
             replace(class_configs[0], arrival_rate=lambda_1),
             replace(class_configs[1], arrival_rate=lambda_2),
@@ -80,6 +91,8 @@ def run_lambda_sweep(
             base_seed=base_seed + scenario_index * replications,
         )
         frame = replication_summary_frame(results)
+        frame["lambda_total"] = total_lambda
+        frame["class_1_share"] = class_1_share
         frame["lambda_1"] = lambda_1
         frame["lambda_2"] = lambda_2
         frames.append(frame)

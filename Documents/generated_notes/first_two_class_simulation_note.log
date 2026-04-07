@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.3.8)  7 APR 2026 12:32
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.3.8)  7 APR 2026 13:25
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -419,16 +419,16 @@ L3 programming layer <2025-01-18>
  ***********
 Package rerunfilecheck Info: File `first_two_class_simulation_note.out' has not
  changed.
-(rerunfilecheck)             Checksum: 69437DC97E37E609866AD2549CD06B74;6194.
+(rerunfilecheck)             Checksum: 0E897A0B11A902296A23D7BDA06B1A62;6283.
  ) 
 Here is how much of TeX's memory you used:
  9997 strings out of 473190
  153067 string characters out of 5715801
- 563890 words of memory out of 5000000
+ 561890 words of memory out of 5000000
  33096 multiletter control sequences out of 15000+600000
  570651 words of font info for 81 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 75i,10n,79p,594b,551s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 75i,10n,79p,594b,537s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb
 ></usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb>
 </usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb><
@@ -446,7 +446,7 @@ e/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/local/texlive
 2025/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb></usr/local/texl
 ive/2025/texmf-dist/fonts/type1/public/cm-super/sfrm1095.pfb>
 Output written on Documents/generated_notes/first_two_class_simulation_note.pdf
- (8 pages, 209721 bytes).
+ (8 pages, 211313 bytes).
 PDF statistics:
  268 PDF objects out of 1000 (max. 8388607)
  223 compressed objects within 3 object streams
