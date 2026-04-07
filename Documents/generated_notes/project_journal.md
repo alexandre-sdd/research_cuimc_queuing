@@ -20,7 +20,8 @@ As of 2026-04-07, the project includes:
 - a literature synthesis in [knowledge_appointment_dynamics.md](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/knowledge_appointment_dynamics.md)
 - a status memo in [simulation_status_and_next_steps.md](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/simulation_status_and_next_steps.md)
 - a behavior-only notebook in [behavior_functions.ipynb](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Notebooks/behavior_functions.ipynb)
-- a simulation-results notebook in [simulation.ipynb](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Notebooks/simulation.ipynb)
+- a FCFS-only simulation-results notebook in [simulation.ipynb](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Notebooks/simulation.ipynb)
+- a policy-comparison notebook in [policy_comparisons.ipynb](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Notebooks/policy_comparisons.ipynb)
 
 ## Implemented Model Features
 
@@ -58,8 +59,9 @@ The standalone review of the initial formulation note identified three document-
 
 ## Most Recent Completed Task
 
-- Simplified the mathematical notation so the relevant behavioral delay is denoted by `\tau`, with `r` reserved for residual delay in the state.
+- Split the notebook workflow so that [simulation.ipynb](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Notebooks/simulation.ipynb) is FCFS-only and [policy_comparisons.ipynb](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Notebooks/policy_comparisons.ipynb) contains the non-FCFS policy analysis.
+- Re-executed both notebooks successfully after the split.
 
 Commit:
 
-- recorded in git history for the task that implements this notation change
+- to be recorded in git history for this notebook-organization change
