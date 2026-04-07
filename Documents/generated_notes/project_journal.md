@@ -59,9 +59,9 @@ The standalone review of the initial formulation note identified three document-
 
 ## Most Recent Completed Task
 
-- Split the notebook workflow so that [simulation.ipynb](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Notebooks/simulation.ipynb) is FCFS-only and [policy_comparisons.ipynb](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Notebooks/policy_comparisons.ipynb) contains the non-FCFS policy analysis.
-- Re-executed both notebooks successfully after the split.
+- Added docstrings across the simulation package for the main behavior, policy, profile, sweep, and core simulation functions.
+- Validated that the package still passes the test suite after the documentation update.
 
 Commit:
 
-- to be recorded in git history for this notebook-organization change
+- to be recorded in git history for this documentation pass

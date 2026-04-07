@@ -8,10 +8,12 @@ ProbabilityFn = Callable[[int], float]
 
 
 def clamp_probability(value: float) -> float:
+    """Clip a numeric value to the probability interval ``[0, 1]``."""
     return max(0.0, min(1.0, value))
 
 
 def constant_probability(value: float) -> ProbabilityFn:
+    """Return a delay-independent probability function."""
     probability = clamp_probability(value)
 
     def fn(_: int) -> float:
@@ -25,6 +27,7 @@ def step_balking(
     low_delay_probability: float = 0.0,
     high_delay_probability: float = 1.0,
 ) -> ProbabilityFn:
+    """Return a step balking rule with a single jump at the offered delay threshold."""
     low_delay_probability = clamp_probability(low_delay_probability)
     high_delay_probability = clamp_probability(high_delay_probability)
     if threshold < 0:
@@ -44,6 +47,7 @@ def logistic_balking(
     floor: float = 0.0,
     ceiling: float = 1.0,
 ) -> ProbabilityFn:
+    """Return a smooth delay-sensitive balking rule based on a logistic curve."""
     floor = clamp_probability(floor)
     ceiling = clamp_probability(ceiling)
     if ceiling < floor:
@@ -61,6 +65,7 @@ def exponential_no_show(
     maximum: float,
     scale: float,
 ) -> ProbabilityFn:
+    """Return an increasing no-show curve that saturates exponentially with delay."""
     base = clamp_probability(base)
     maximum = clamp_probability(maximum)
     if maximum < base:
@@ -79,5 +84,5 @@ def green_savin_no_show(
     gamma_max: float,
     sensitivity: float,
 ) -> ProbabilityFn:
-    """Green-Savin style exponential-saturation no-show probability."""
+    """Return the Green-Savin exponential-saturation no-show specification."""
     return exponential_no_show(base=gamma_0, maximum=gamma_max, scale=sensitivity)

@@ -5,17 +5,21 @@ from typing import Mapping, Optional, Protocol, Sequence
 
 
 class SlotSelection(tuple):
+    """Immutable ``(day_offset, slot_index)`` pair returned by allocation policies."""
     __slots__ = ()
 
     def __new__(cls, day_offset: int, slot_index: int) -> "SlotSelection":
+        """Create a slot reference from a future day offset and in-day slot index."""
         return tuple.__new__(cls, (day_offset, slot_index))
 
     @property
     def day_offset(self) -> int:
+        """Return the day offset of the selected future slot."""
         return self[0]
 
     @property
     def slot_index(self) -> int:
+        """Return the within-day slot index of the selected future slot."""
         return self[1]
 
 
@@ -23,15 +27,19 @@ CalendarView = Sequence[Sequence[object | None]]
 
 
 def _slot_start(day_offset: int, current_slot: int) -> int:
+    """Return the first eligible slot index for a given day offset."""
     return current_slot + 1 if day_offset == 0 else 0
 
 
 def _open_slots_after_current(day_slots: Sequence[object | None], day_offset: int, current_slot: int) -> int:
+    """Count open slots that remain bookable from the current decision point."""
     slot_start = _slot_start(day_offset, current_slot)
     return sum(slot is None for slot in day_slots[slot_start:])
 
 
 class AllocationPolicy(Protocol):
+    """Interface for booking rules that choose an eligible future slot."""
+
     def select_slot(
         self,
         calendar: CalendarView,
@@ -53,6 +61,7 @@ class FCFSPolicy:
         current_day: int,
         current_slot: int,
     ) -> Optional[SlotSelection]:
+        """Pick the earliest open slot strictly after the current slot."""
         for day_offset, day_slots in enumerate(calendar):
             slot_start = current_slot + 1 if day_offset == 0 else 0
             for slot_index in range(slot_start, len(day_slots)):
@@ -72,6 +81,7 @@ class LatestAvailablePolicy:
         current_day: int,
         current_slot: int,
     ) -> Optional[SlotSelection]:
+        """Pick the latest open slot that is still eligible for booking."""
         for day_offset in range(len(calendar) - 1, -1, -1):
             day_slots = calendar[day_offset]
             slot_stop = current_slot + 1 if day_offset == 0 else len(day_slots)
@@ -107,6 +117,7 @@ class ReservedCapacityPolicy:
         slots_per_day: int,
         reserved_share_by_class: Mapping[int, float],
     ) -> "ReservedCapacityPolicy":
+        """Build a reservation rule from per-class daily slot shares."""
         if slots_per_day <= 0:
             raise ValueError("slots_per_day must be positive")
         reserved_slots_by_class = {}
@@ -123,6 +134,7 @@ class ReservedCapacityPolicy:
         current_day: int,
         current_slot: int,
     ) -> Optional[SlotSelection]:
+        """Pick the earliest slot that preserves other classes' daily reservations."""
         for day_offset, day_slots in enumerate(calendar):
             open_slots = _open_slots_after_current(day_slots, day_offset, current_slot)
             reserved_for_other_classes = sum(
@@ -157,6 +169,7 @@ class ClassWindowPolicy:
         current_day: int,
         current_slot: int,
     ) -> Optional[SlotSelection]:
+        """Pick the earliest open slot that respects the class-specific delay cap."""
         max_delay = self.max_delay_by_class.get(class_id, len(calendar) - 1)
         capped_max_delay = min(max_delay, len(calendar) - 1)
         for day_offset, day_slots in enumerate(calendar):

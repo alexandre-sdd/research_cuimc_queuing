@@ -157,14 +157,17 @@ class SimulationConfig:
 
     @property
     def effective_cooldown_days(self) -> int:
+        """Return the cooldown length, defaulting to one full booking horizon."""
         return self.horizon_days if self.cooldown_days is None else self.cooldown_days
 
     @property
     def measured_slot_count(self) -> int:
+        """Return the number of slots included in the measurement window."""
         return self.measure_days * self.slots_per_day
 
     @property
     def total_days(self) -> int:
+        """Return the full simulation length including burn-in and cooldown."""
         return self.burn_in_days + self.measure_days + self.effective_cooldown_days
 
 
@@ -201,12 +204,14 @@ class SimulationResult:
 
 
 def _build_frame(records: list[dict[str, Any]], columns: list[str]) -> pd.DataFrame:
+    """Convert record dictionaries into a DataFrame with a fixed column order."""
     if not records:
         return pd.DataFrame(columns=columns)
     return pd.DataFrame.from_records(records, columns=columns)
 
 
 def _combine_counts(frames: Sequence[pd.Series], fill_value: float = 0.0) -> pd.Series:
+    """Add together count series while preserving indexes across missing keys."""
     if not frames:
         return pd.Series(dtype=float)
     result = frames[0].copy()
@@ -216,12 +221,14 @@ def _combine_counts(frames: Sequence[pd.Series], fill_value: float = 0.0) -> pd.
 
 
 def _safe_ratio(numerator: float, denominator: float) -> float:
+    """Return ``numerator / denominator`` and map zero-denominator cases to zero."""
     if denominator == 0:
         return 0.0
     return float(numerator) / float(denominator)
 
 
 def _label_for(class_configs: Sequence[PatientClassConfig], class_id: int) -> str:
+    """Return the display label associated with a patient class identifier."""
     for config in class_configs:
         if config.class_id == class_id:
             return config.label or f"class_{class_id}"
@@ -229,6 +236,7 @@ def _label_for(class_configs: Sequence[PatientClassConfig], class_id: int) -> st
 
 
 def _validate_class_configs(class_configs: Sequence[PatientClassConfig]) -> tuple[PatientClassConfig, ...]:
+    """Validate and freeze the patient-class configuration sequence."""
     if len(class_configs) < 1:
         raise ValueError("at least one patient class is required")
     class_ids = [config.class_id for config in class_configs]
@@ -238,10 +246,12 @@ def _validate_class_configs(class_configs: Sequence[PatientClassConfig]) -> tupl
 
 
 def _is_measured_day(day: int, config: SimulationConfig) -> bool:
+    """Check whether an absolute simulation day belongs to the measurement window."""
     return config.burn_in_days <= day < config.burn_in_days + config.measure_days
 
 
 def _measured_day_index(day: int, config: SimulationConfig) -> int:
+    """Map an absolute simulation day to its zero-based measured-day index."""
     return day - config.burn_in_days
 
 
@@ -250,6 +260,14 @@ def simulate(
     config: SimulationConfig | None = None,
     policy: AllocationPolicy | None = None,
 ) -> SimulationResult:
+    """
+    Run the rolling-horizon appointment-book simulation.
+
+    The engine advances one slot at a time, generates class-specific arrivals,
+    lets the booking policy offer an eligible future slot, applies balking and
+    pre-appointment cancellation, and resolves booked patients as served or
+    no-show at appointment time.
+    """
     config = config or SimulationConfig()
     class_configs = _validate_class_configs(class_configs)
     policy = policy or FCFSPolicy()
@@ -266,6 +284,7 @@ def simulate(
     next_patient_id = 1
 
     def apply_cancellations(day: int) -> None:
+        """Release slots whose booked patient cancels at the start of the given day."""
         for day_offset, day_slots in enumerate(calendar):
             for slot_index, appointment in enumerate(day_slots):
                 if appointment is None or appointment.cancel_day != day:
@@ -279,6 +298,7 @@ def simulate(
                 calendar[day_offset][slot_index] = None
 
     def record_state(day: int) -> None:
+        """Record the day-start residual-delay state summary ``X_{i,r}^D``."""
         measured_day = _measured_day_index(day, config)
         counts = {(class_id, residual_delay): 0 for class_id in class_lookup for residual_delay in range(config.horizon_days)}
         for residual_delay, day_slots in enumerate(calendar):
@@ -481,6 +501,7 @@ def _build_summary_by_class(
     class_configs: Sequence[PatientClassConfig],
     config: SimulationConfig,
 ) -> pd.DataFrame:
+    """Assemble class-level booking, access, and attendance KPIs."""
     records: list[dict[str, Any]] = []
     for class_config in class_configs:
         class_id = class_config.class_id
@@ -558,6 +579,7 @@ def _build_summary_by_class(
 
 
 def _build_aggregate_summary(summary_by_class: pd.DataFrame) -> pd.Series:
+    """Collapse class-level KPIs into an aggregate summary row."""
     if summary_by_class.empty:
         return pd.Series(dtype=float)
 
@@ -604,6 +626,7 @@ def _build_slot_summaries(
     class_configs: Sequence[PatientClassConfig],
     config: SimulationConfig,
 ) -> tuple[pd.DataFrame, pd.Series]:
+    """Compute slot-based utilization summaries by class and in aggregate."""
     total_slots = config.measured_slot_count
     records: list[dict[str, Any]] = []
     for class_config in class_configs:
@@ -652,6 +675,7 @@ def _build_delay_distributions(
     cohort_log: pd.DataFrame,
     class_configs: Sequence[PatientClassConfig],
 ) -> tuple[dict[int, pd.Series], pd.Series]:
+    """Count booked delays by class and for the full measured cohort."""
     by_class: dict[int, pd.Series] = {}
     for class_config in class_configs:
         class_id = class_config.class_id
@@ -674,6 +698,7 @@ def _build_daily_journals(
     class_configs: Sequence[PatientClassConfig],
     config: SimulationConfig,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Build per-day operational journals from measured arrivals, cohorts, slots, and state."""
     by_class_records: list[dict[str, Any]] = []
     aggregate_records: list[dict[str, Any]] = []
 

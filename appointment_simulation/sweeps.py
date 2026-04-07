@@ -16,6 +16,7 @@ def simulate_replications(
     replications: int = 1,
     base_seed: int = 0,
 ) -> list[SimulationResult]:
+    """Run repeated simulation replications with deterministic seed offsets."""
     config = config or SimulationConfig()
     results: list[SimulationResult] = []
     for replication in range(replications):
@@ -25,6 +26,7 @@ def simulate_replications(
 
 
 def replication_summary_frame(results: Sequence[SimulationResult]) -> pd.DataFrame:
+    """Collect replication-level aggregate KPIs into a single data frame."""
     records = []
     for replication, result in enumerate(results):
         aggregate = result.summary_aggregate.copy()
@@ -58,6 +60,7 @@ def run_lambda_sweep(
     replications: int = 1,
     base_seed: int = 0,
 ) -> pd.DataFrame:
+    """Evaluate the simulator over a grid of two-class arrival-rate scenarios."""
     class_configs = tuple(class_configs)
     if len(class_configs) < 2:
         raise ValueError("run_lambda_sweep expects at least two patient classes")

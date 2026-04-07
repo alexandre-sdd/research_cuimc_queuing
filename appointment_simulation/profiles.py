@@ -19,7 +19,7 @@ def behavior_profile_frame(
     class_configs: Sequence[PatientClassConfig],
     horizon_days: int,
 ) -> pd.DataFrame:
-    """Evaluate behavior curves over the original delay faced when the slot is offered."""
+    """Tabulate balking, no-show, and cancellation profiles over offered delay values."""
     if horizon_days <= 0:
         raise ValueError("horizon_days must be positive")
 
