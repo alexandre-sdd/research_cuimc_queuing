@@ -59,9 +59,10 @@ The standalone review of the initial formulation note identified three document-
 
 ## Most Recent Completed Task
 
-- Clarified the behavior-functions notebook so the cancellation plot and table now show the operational interpretation of `\phi_i` explicitly: `0` when `\tau=0` and `\phi_i` when `\tau \ge 1`.
-- Re-executed the behavior-functions notebook after the label cleanup.
+- Strengthened the results notebooks by moving from essentially single-path comparisons to multiple independent replications per scenario or policy, with between-replication dispersion shown in the plots.
+- Set the current notebook compromise at `10` replications for the FCFS demand sweep and `10` replications for policy comparisons so the analysis is more robust without making the notebook unusably heavy.
+- Smoke-tested the new multi-replication logic directly in Python on smaller scenarios; full `nbconvert` execution of the heavier notebooks remains slow at this scale.
 
 Commit:
 
-- to be recorded in git history for this cancellation-label clarification
+- to be recorded in git history for this notebook robustness update
