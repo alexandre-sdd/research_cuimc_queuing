@@ -59,11 +59,11 @@ The standalone review of the initial formulation note identified three document-
 
 ## Most Recent Completed Task
 
-- Added a dedicated time-advancement visualization to [first_two_class_simulation_note.tex](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.tex) immediately after the decision-epoch definition.
-- The note now shows both the recursive rule for the next epoch and a single timeline table that makes the joint evolution of day index `D` and slot index `s` explicit.
-- This complements the earlier worked example for `Y_t(r,m)` and `X_{i,r}^D` by clarifying the clock on which those state variables evolve.
+- Clarified in [first_two_class_simulation_note.tex](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.tex) that the use of `D=20` in the time example is arbitrary and purely illustrative.
+- Added an actual graphical time-evolution diagram for `t=(D,s)`, with nodes and arrows showing movement within a day and the rollover from `(D,S-1)` to `(D+1,0)`.
+- Kept the table as a complementary view so the reader now has both an algebraic and a visual representation of the decision epochs.
 - Recompiled [first_two_class_simulation_note.pdf](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.pdf) after the documentation update.
 
 Commit:
 
-- to be recorded in git history for the time-index visualization update
+- to be recorded in git history for the graphical time-evolution update
