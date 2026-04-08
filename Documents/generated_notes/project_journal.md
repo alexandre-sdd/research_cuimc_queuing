@@ -59,10 +59,11 @@ The standalone review of the initial formulation note identified three document-
 
 ## Most Recent Completed Task
 
-- Strengthened the results notebooks by moving from essentially single-path comparisons to multiple independent replications per scenario or policy, with between-replication dispersion shown in the plots.
-- Set the current notebook compromise at `10` replications for the FCFS demand sweep and `10` replications for policy comparisons so the analysis is more robust without making the notebook unusably heavy.
-- Smoke-tested the new multi-replication logic directly in Python on smaller scenarios; full `nbconvert` execution of the heavier notebooks remains slow at this scale.
+- Added an explicit bootstrap summary helper to the simulation package so notebook uncertainty bands are computed directly from replication outputs rather than delegated to plotting defaults.
+- Updated the simulation and policy notebooks to show visible `tqdm` progress bars during bootstrap resampling and to expose notebook-level controls for the number of replications and bootstrap resamples.
+- Kept the current notebook default at `10` replications and `2,000` bootstrap resamples per summary so the workflow is materially more robust while still remaining runnable locally.
+- Validated the implementation with `pytest -q` and full `nbconvert` execution of [simulation.ipynb](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Notebooks/simulation.ipynb) and [policy_comparisons.ipynb](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Notebooks/policy_comparisons.ipynb).
 
 Commit:
 
-- to be recorded in git history for this notebook robustness update
+- to be recorded in git history for the bootstrap and progress-bar update

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import pandas as pd
+
 from appointment_simulation import (
     ClassWindowPolicy,
     FCFSPolicy,
@@ -8,6 +10,7 @@ from appointment_simulation import (
     ReservedCapacityPolicy,
     SimulationConfig,
     behavior_profile_frame,
+    bootstrap_metric_summary,
     constant_probability,
     green_savin_no_show,
     run_lambda_sweep,
@@ -263,3 +266,32 @@ def test_total_lambda_split_and_sweep_use_class_share_parameterization() -> None
     assert set(frame["class_1_share"]) == {0.6}
     assert set(frame.loc[frame["lambda_total"] == 0.20, "lambda_1"].round(10)) == {0.12}
     assert set(frame.loc[frame["lambda_total"] == 0.20, "lambda_2"].round(10)) == {0.08}
+
+
+def test_bootstrap_metric_summary_returns_grouped_means_and_intervals() -> None:
+    frame = pd.DataFrame(
+        {
+            "scenario": ["low", "low", "high", "high"],
+            "replication": [0, 1, 0, 1],
+            "metric_a": [1.0, 3.0, 5.0, 7.0],
+            "metric_b": [2.0, 4.0, 6.0, 8.0],
+        }
+    )
+
+    summary = bootstrap_metric_summary(
+        frame,
+        group_cols=["scenario"],
+        metric_cols=["metric_a", "metric_b"],
+        n_bootstrap=200,
+        ci=90.0,
+        rng_seed=12,
+        show_progress=False,
+    )
+
+    assert set(summary.columns) == {"scenario", "metric", "replications", "mean", "sd", "ci_lower", "ci_upper"}
+    assert len(summary) == 4
+
+    low_metric_a = summary[(summary["scenario"] == "low") & (summary["metric"] == "metric_a")].iloc[0]
+    assert low_metric_a["replications"] == 2
+    assert low_metric_a["mean"] == 2.0
+    assert low_metric_a["ci_lower"] <= low_metric_a["mean"] <= low_metric_a["ci_upper"]

@@ -14,7 +14,13 @@ from .policies import (
     ReservedCapacityPolicy,
 )
 from .profiles import behavior_profile_frame, effective_cancellation_probability
-from .sweeps import replication_summary_frame, run_lambda_sweep, simulate_replications, split_two_class_arrival_rates
+from .sweeps import (
+    bootstrap_metric_summary,
+    replication_summary_frame,
+    run_lambda_sweep,
+    simulate_replications,
+    split_two_class_arrival_rates,
+)
 
 __all__ = [
     "AllocationPolicy",
@@ -26,6 +32,7 @@ __all__ = [
     "SimulationConfig",
     "SimulationResult",
     "behavior_profile_frame",
+    "bootstrap_metric_summary",
     "constant_probability",
     "effective_cancellation_probability",
     "exponential_no_show",

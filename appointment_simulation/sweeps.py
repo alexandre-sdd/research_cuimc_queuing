@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import replace
 from typing import Iterable, Sequence
 
+import numpy as np
 import pandas as pd
 
 from .core import PatientClassConfig, SimulationConfig, SimulationResult, simulate
@@ -58,6 +59,68 @@ def replication_summary_frame(results: Sequence[SimulationResult]) -> pd.DataFra
                 "attended_slot_utilization": slot_aggregate.get("attended_slot_utilization", 0.0),
             }
         )
+    return pd.DataFrame.from_records(records)
+
+
+def bootstrap_metric_summary(
+    frame: pd.DataFrame,
+    *,
+    group_cols: Sequence[str],
+    metric_cols: Sequence[str],
+    n_bootstrap: int = 2_000,
+    ci: float = 95.0,
+    rng_seed: int = 0,
+    show_progress: bool = False,
+    progress_desc: str = "Bootstrap summaries",
+) -> pd.DataFrame:
+    """
+    Estimate grouped metric means and percentile bootstrap confidence intervals.
+
+    The input is expected to contain one row per replication. The output is a
+    long-form frame with one row per ``group_cols`` / metric combination.
+    """
+    if frame.empty:
+        return pd.DataFrame(columns=[*group_cols, "metric", "replications", "mean", "sd", "ci_lower", "ci_upper"])
+    if n_bootstrap <= 0:
+        raise ValueError("n_bootstrap must be positive")
+    if not 0.0 < ci < 100.0:
+        raise ValueError("ci must lie strictly between 0 and 100")
+
+    grouped = list(frame.groupby(list(group_cols), dropna=False, sort=True))
+    tasks: list[tuple[tuple[object, ...], pd.DataFrame, str]] = []
+    for group_key, group_frame in grouped:
+        normalized_key = group_key if isinstance(group_key, tuple) else (group_key,)
+        for metric in metric_cols:
+            tasks.append((normalized_key, group_frame, metric))
+
+    iterator = tasks
+    if show_progress:
+        from tqdm.auto import tqdm
+
+        iterator = tqdm(tasks, desc=progress_desc)
+
+    alpha = (1.0 - ci / 100.0) / 2.0
+    rng = np.random.default_rng(rng_seed)
+    records: list[dict[str, object]] = []
+    for group_key, group_frame, metric in iterator:
+        values = pd.to_numeric(group_frame[metric], errors="coerce").dropna().to_numpy(dtype=float)
+        replications = int(group_frame["replication"].nunique()) if "replication" in group_frame.columns else int(len(values))
+        record = {
+            **dict(zip(group_cols, group_key)),
+            "metric": metric,
+            "replications": replications,
+            "mean": float(values.mean()) if len(values) else float("nan"),
+            "sd": float(values.std(ddof=1)) if len(values) > 1 else 0.0,
+            "ci_lower": float("nan"),
+            "ci_upper": float("nan"),
+        }
+        if len(values):
+            bootstrap_samples = values[rng.integers(0, len(values), size=(n_bootstrap, len(values)))]
+            bootstrap_means = bootstrap_samples.mean(axis=1)
+            record["ci_lower"] = float(np.quantile(bootstrap_means, alpha))
+            record["ci_upper"] = float(np.quantile(bootstrap_means, 1.0 - alpha))
+        records.append(record)
+
     return pd.DataFrame.from_records(records)
 
 
