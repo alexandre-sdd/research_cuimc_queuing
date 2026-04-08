@@ -59,11 +59,11 @@ The standalone review of the initial formulation note identified three document-
 
 ## Most Recent Completed Task
 
-- Rewrote the explanation of the slot-level state in [first_two_class_simulation_note.tex](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.tex) to make the roles of `r` and `m` more intuitive.
-- The note now explains `r` as the row of the rolling calendar, that is, how many days ahead from day `D` we are looking, and `m` as the column, that is, which slot within that day we are looking at.
-- Replaced the heavier interpretation blocks with shorter prose so the notation reads more naturally.
+- Added an explicit `H \times S` calendar scheme to [first_two_class_simulation_note.tex](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.tex) so the roles of rows `r` and columns `m` are visible directly in table form.
+- Added a small filled example with `H=3` and `S=4` right next to that scheme, so the reader can see how open slots and occupied slots appear inside the rolling calendar.
+- Kept the later worked example for deriving `X_{i,r}^D`, but the note now introduces the calendar itself earlier and more visually.
 - Recompiled [first_two_class_simulation_note.pdf](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.pdf) after the documentation update.
 
 Commit:
 
-- to be recorded in git history for the r/m clarification update
+- to be recorded in git history for the HxS calendar scheme update
