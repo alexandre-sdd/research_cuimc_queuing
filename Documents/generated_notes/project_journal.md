@@ -59,11 +59,11 @@ The standalone review of the initial formulation note identified three document-
 
 ## Most Recent Completed Task
 
-- Added an explicit `H \times S` calendar scheme to [first_two_class_simulation_note.tex](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.tex) so the roles of rows `r` and columns `m` are visible directly in table form.
-- Added a small filled example with `H=3` and `S=4` right next to that scheme, so the reader can see how open slots and occupied slots appear inside the rolling calendar.
-- Kept the later worked example for deriving `X_{i,r}^D`, but the note now introduces the calendar itself earlier and more visually.
+- Restyled the `H \times S` calendar scheme in [first_two_class_simulation_note.tex](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.tex) so it looks more like a calendar and less like a bare mathematical array.
+- Converted both the generic scheme and the filled example into boxed tables with day labels, slot headers, and colored cells for open versus occupied slots.
+- Kept the same notation, but made the visual form closer to an appointment book or agenda.
 - Recompiled [first_two_class_simulation_note.pdf](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.pdf) after the documentation update.
 
 Commit:
 
-- to be recorded in git history for the HxS calendar scheme update
+- to be recorded in git history for the calendar-style table update
