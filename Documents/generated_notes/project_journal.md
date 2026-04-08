@@ -59,11 +59,11 @@ The standalone review of the initial formulation note identified three document-
 
 ## Most Recent Completed Task
 
-- Restyled the `H \times S` calendar scheme in [first_two_class_simulation_note.tex](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.tex) so it looks more like a calendar and less like a bare mathematical array.
-- Converted both the generic scheme and the filled example into boxed tables with day labels, slot headers, and colored cells for open versus occupied slots.
-- Kept the same notation, but made the visual form closer to an appointment book or agenda.
+- Flipped the calendar-style displays in [first_two_class_simulation_note.tex](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.tex) so days now appear as columns and slots as rows.
+- Updated the surrounding prose so the reader sees clearly that this is only a visualization choice; the mathematical state remains indexed as `Y_t(r,m)`.
+- Transposed the filled example accordingly, so each day now reads as one calendar column rather than one row.
 - Recompiled [first_two_class_simulation_note.pdf](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.pdf) after the documentation update.
 
 Commit:
 
-- to be recorded in git history for the calendar-style table update
+- to be recorded in git history for the transposed calendar display update

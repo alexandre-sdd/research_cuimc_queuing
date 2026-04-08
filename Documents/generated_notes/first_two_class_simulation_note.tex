@@ -193,70 +193,78 @@ of each day, and service realizations are processed.
 \subsection{True State: Slot-Level Calendar}
 
 The true simulator state at time $t=(D,s)$ is the rolling slot-level calendar.
-It is helpful to think of this calendar as an $H \times S$ table. The row index $r$ tells us
-which day ahead we are looking at relative to the current day $D$: $r=0$ means ``today'',
-$r=1$ means ``tomorrow'', and so on. The column index $m$ tells us which slot within that day we
-are looking at: $m=0$ is the first slot of the day, $m=1$ the second, and so on until $m=S-1$.
+The mathematical state is indexed by residual day $r$ and slot index $m$.
+For visualization, however, it is often more natural to display the calendar with days as
+\emph{columns} and slots as \emph{rows}. In that display, the column index corresponds to the day
+ahead relative to the current day $D$: $r=0$ means ``today'', $r=1$ means ``tomorrow'', and so on.
+The row index corresponds to the slot within a day: $m=0$ is the first slot, $m=1$ the second, and
+so on until $m=S-1$.
 
 Schematically, the rolling calendar has the following structure:
 \begin{center}
 \renewcommand{\arraystretch}{1.35}
 \setlength{\tabcolsep}{7pt}
-\begin{tabular}{|>{\raggedright\arraybackslash}m{2.9cm}|>{\centering\arraybackslash}m{2.2cm}|>{\centering\arraybackslash}m{2.2cm}|>{\centering\arraybackslash}m{1.6cm}|>{\centering\arraybackslash}m{2.4cm}|}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{|>{\raggedright\arraybackslash}m{2.3cm}|>{\centering\arraybackslash}m{2.0cm}|>{\centering\arraybackslash}m{2.0cm}|>{\centering\arraybackslash}m{1.5cm}|>{\centering\arraybackslash}m{2.4cm}|}
 \hline
 \rowcolor{gray!15}
-\textbf{Day in horizon} & \shortstack{\textbf{slot 0}\\($m=0$)} & \shortstack{\textbf{slot 1}\\($m=1$)} & \textbf{$\cdots$} & \shortstack{\textbf{slot $S-1$}\\($m=S-1$)} \\
+\textbf{Slot in day} & \shortstack{\textbf{day $D$}\\($r=0$)} & \shortstack{\textbf{day $D+1$}\\($r=1$)} & \textbf{$\cdots$} & \shortstack{\textbf{day $D+H-1$}\\($r=H-1$)} \\
 \hline
-\cellcolor{blue!8}\shortstack[l]{\textbf{day $D$}\\($r=0$)} & $Y_t(0,0)$ & $Y_t(0,1)$ & $\cdots$ & $Y_t(0,S-1)$ \\
+\cellcolor{gray!10}\shortstack[l]{\textbf{slot 0}\\($m=0$)} & $Y_t(0,0)$ & $Y_t(1,0)$ & $\cdots$ & $Y_t(H-1,0)$ \\
 \hline
-\cellcolor{blue!8}\shortstack[l]{\textbf{day $D+1$}\\($r=1$)} & $Y_t(1,0)$ & $Y_t(1,1)$ & $\cdots$ & $Y_t(1,S-1)$ \\
+\cellcolor{gray!10}\shortstack[l]{\textbf{slot 1}\\($m=1$)} & $Y_t(0,1)$ & $Y_t(1,1)$ & $\cdots$ & $Y_t(H-1,1)$ \\
 \hline
-\cellcolor{gray!8}\textbf{later days} & $\vdots$ & $\vdots$ & $\ddots$ & $\vdots$ \\
+\cellcolor{gray!8}\textbf{later slots} & $\vdots$ & $\vdots$ & $\ddots$ & $\vdots$ \\
 \hline
-\cellcolor{blue!8}\shortstack[l]{\textbf{day $D+H-1$}\\($r=H-1$)} & $Y_t(H-1,0)$ & $Y_t(H-1,1)$ & $\cdots$ & $Y_t(H-1,S-1)$ \\
+\cellcolor{gray!10}\shortstack[l]{\textbf{slot $S-1$}\\($m=S-1$)} & $Y_t(0,S-1)$ & $Y_t(1,S-1)$ & $\cdots$ & $Y_t(H-1,S-1)$ \\
 \hline
 \end{tabular}
+}
 \end{center}
 
-So each row is a day in the rolling horizon, and each column is a slot inside that day.
+So each column is a day in the rolling horizon, and each row is a slot inside that day.
 The state variable $Y_t(r,m)$ is just the content of one cell of this table.
 
 A small illustrative example with $H=3$ and $S=4$ looks like this:
 \begin{center}
 \renewcommand{\arraystretch}{1.4}
 \setlength{\tabcolsep}{6pt}
-\begin{tabular}{|>{\raggedright\arraybackslash}m{2.9cm}|>{\centering\arraybackslash}m{2.2cm}|>{\centering\arraybackslash}m{2.2cm}|>{\centering\arraybackslash}m{2.2cm}|>{\centering\arraybackslash}m{2.2cm}|}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{|>{\raggedright\arraybackslash}m{2.3cm}|>{\centering\arraybackslash}m{2.2cm}|>{\centering\arraybackslash}m{2.2cm}|>{\centering\arraybackslash}m{2.2cm}|}
 \hline
 \rowcolor{gray!15}
-\textbf{Day in horizon} & \textbf{slot 0} & \textbf{slot 1} & \textbf{slot 2} & \textbf{slot 3} \\
+\textbf{Slot in day} & \textbf{day $D$} & \textbf{day $D+1$} & \textbf{day $D+2$} \\
 \hline
-\cellcolor{blue!8}\shortstack[l]{\textbf{day $D$}\\($r=0$)} &
+\cellcolor{gray!10}\shortstack[l]{\textbf{slot 0}\\($m=0$)} &
 \cellcolor{green!12}\textsf{open} &
 \cellcolor{blue!12}$(1,0,\varnothing)$ &
-\cellcolor{green!12}\textsf{open} &
-\cellcolor{orange!18}$(2,0,\varnothing)$ \\
-\hline
-\cellcolor{blue!8}\shortstack[l]{\textbf{day $D+1$}\\($r=1$)} &
-\cellcolor{blue!12}$(1,1,\varnothing)$ &
-\cellcolor{green!12}\textsf{open} &
-\cellcolor{orange!18}$(2,1,\varnothing)$ &
 \cellcolor{green!12}\textsf{open} \\
 \hline
-\cellcolor{blue!8}\shortstack[l]{\textbf{day $D+2$}\\($r=2$)} &
+\cellcolor{gray!10}\shortstack[l]{\textbf{slot 1}\\($m=1$)} &
+\cellcolor{blue!12}$(1,0,\varnothing)$ &
 \cellcolor{green!12}\textsf{open} &
-\cellcolor{orange!18}$(2,2,D+1)$ &
-\cellcolor{blue!12}$(1,2,\varnothing)$ &
+\cellcolor{orange!18}$(2,2,D+1)$ \\
+\hline
+\cellcolor{gray!10}\shortstack[l]{\textbf{slot 2}\\($m=2$)} &
+\cellcolor{green!12}\textsf{open} &
+\cellcolor{orange!18}$(2,1,\varnothing)$ &
+\cellcolor{blue!12}$(1,2,\varnothing)$ \\
+\hline
+\cellcolor{gray!10}\shortstack[l]{\textbf{slot 3}\\($m=3$)} &
+\cellcolor{orange!18}$(2,0,\varnothing)$ &
+\cellcolor{green!12}\textsf{open} &
 \cellcolor{green!12}\textsf{open} \\
 \hline
 \end{tabular}
+}
 \end{center}
 
-This example is read row by row.
-The first row is today's remaining schedule, the second row is tomorrow's schedule, and the third
-row is the schedule for the day after tomorrow.
-For instance, the entry in row $r=1$ and column $m=2$ is $(2,1,\varnothing)$, meaning that the
-third slot of day $D+1$ is occupied by a class-2 patient who accepted a one-day delay and is not
-scheduled to cancel before service.
+This example is read column by column.
+The first column is today's remaining schedule, the second column is tomorrow's schedule, and the
+third column is the schedule for the day after tomorrow.
+For instance, the entry in day-column $r=1$ and slot-row $m=2$ is $(2,1,\varnothing)$, meaning
+that slot $2$ of day $D+1$ is occupied by a class-2 patient who accepted a one-day delay and is
+not scheduled to cancel before service.
 
 For each residual day offset
 \[
@@ -271,7 +279,8 @@ define
 Y_t(r,m).
 \]
 
-So $Y_t(r,m)$ is simply the content of row $r$, column $m$ of that rolling calendar.
+So $Y_t(r,m)$ is simply the content of the cell indexed by day-ahead $r$ and slot $m$ in that
+rolling calendar.
 If
 \[
 Y_t(r,m)=0,
