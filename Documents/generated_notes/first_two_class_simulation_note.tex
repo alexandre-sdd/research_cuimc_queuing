@@ -200,6 +200,33 @@ ahead relative to the current day $D$: $r=0$ means ``today'', $r=1$ means ``tomo
 The row index corresponds to the slot within a day: $m=0$ is the first slot, $m=1$ the second, and
 so on until $m=S-1$.
 
+Formally, for each residual day offset
+\[
+r \in \{0,1,\dots,H-1\}
+\]
+and each slot index
+\[
+m \in \{0,1,\dots,S-1\},
+\]
+define
+\[
+Y_t(r,m).
+\]
+
+So $Y_t(r,m)$ is the content of the cell indexed by day-ahead $r$ and slot $m$ in the rolling
+calendar.
+If
+\[
+Y_t(r,m)=0,
+\]
+then that slot is open.
+If
+\[
+Y_t(r,m)=\left(i,\tau,c\right),
+\]
+then that slot is occupied by a class-$i$ patient who originally accepted delay $\tau$, with
+cancellation marker $c$.
+
 Schematically, the rolling calendar has the following structure:
 \begin{center}
 \renewcommand{\arraystretch}{1.35}
@@ -265,33 +292,6 @@ third column is the schedule for the day after tomorrow.
 For instance, the entry in day-column $r=1$ and slot-row $m=2$ is $(2,1,\varnothing)$, meaning
 that slot $2$ of day $D+1$ is occupied by a class-2 patient who accepted a one-day delay and is
 not scheduled to cancel before service.
-
-For each residual day offset
-\[
-r \in \{0,1,\dots,H-1\}
-\]
-and each slot index
-\[
-m \in \{0,1,\dots,S-1\},
-\]
-define
-\[
-Y_t(r,m).
-\]
-
-So $Y_t(r,m)$ is simply the content of the cell indexed by day-ahead $r$ and slot $m$ in that
-rolling calendar.
-If
-\[
-Y_t(r,m)=0,
-\]
-then that slot is open.
-If
-\[
-Y_t(r,m)=\left(i,\tau,c\right),
-\]
-then that slot is occupied by a class-$i$ patient who originally accepted delay $\tau$, with
-cancellation marker $c$.
 
 The cancellation marker $c$ is either:
 \begin{itemize}[nosep]

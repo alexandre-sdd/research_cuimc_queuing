@@ -59,11 +59,11 @@ The standalone review of the initial formulation note identified three document-
 
 ## Most Recent Completed Task
 
-- Flipped the calendar-style displays in [first_two_class_simulation_note.tex](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.tex) so days now appear as columns and slots as rows.
-- Updated the surrounding prose so the reader sees clearly that this is only a visualization choice; the mathematical state remains indexed as `Y_t(r,m)`.
-- Transposed the filled example accordingly, so each day now reads as one calendar column rather than one row.
+- Reordered the `True State: Slot-Level Calendar` section in [first_two_class_simulation_note.tex](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.tex) so `Y_t(r,m)` is defined before the calendar schemes and examples.
+- Kept the transposed calendar display with days as columns, but fixed the presentation order so the notation is introduced before it is used visually.
+- This makes the section more coherent pedagogically without changing the model itself.
 - Recompiled [first_two_class_simulation_note.pdf](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.pdf) after the documentation update.
 
 Commit:
 
-- to be recorded in git history for the transposed calendar display update
+- to be recorded in git history for the notation-order fix
