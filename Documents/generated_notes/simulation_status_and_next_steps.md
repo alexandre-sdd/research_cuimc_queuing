@@ -18,7 +18,7 @@ The current simulator is now compliant with the **initial model** described in t
 - two patient types arriving to a booking system
 - delay-sensitive booking behavior
 - delay-sensitive no-show behavior
-- daily pre-appointment cancellation driven by class-level `\phi_i`
+- daily pre-appointment cancellation described by `\phi_i(\tau)`
 - FCFS allocation
 - a class-reservation policy
 - a class-specific booking-window policy
@@ -80,16 +80,17 @@ where `\lambda` is the total expected arrival rate per slot and `p` is the class
 The class-specific behavior object remains:
 
 \[
-B_i = \{b_i(\tau), \phi_i, \xi_i(\tau)\}.
+B_i = \{b_i(\tau), \phi_i(\tau), \xi_i(\tau)\}.
 \]
 
-Here `\phi_i` is interpreted as the eventual pre-appointment cancellation probability for a class-`i`
-patient who booked with `\tau \ge 1`. The simulator converts that into a daily cancellation hazard
+Here `\phi_i(\tau)` is the daily pre-appointment cancellation probability for a class-`i`
+patient who booked with original delay `\tau`. In the current first implementation, this daily
+function is induced by a class-level eventual cancellation parameter `\bar{\phi}_i` through
 \[
-q_i(\tau)=1-(1-\phi_i)^{1/\tau}
+\phi_i(\tau)=1-(1-\bar{\phi}_i)^{1/\tau}
 \]
-for `\tau \ge 1`, with `q_i(0)=0`, so that cancellations are resolved day by day rather than
-drawn in advance.
+for `\tau \ge 1`, with `\phi_i(0)=0`, so that cancellations are resolved day by day rather than
+drawn in advance while the total pre-appointment cancellation probability remains `\bar{\phi}_i`.
 
 This keeps the first notebook parameterization simple while remaining aligned with the literature reviewed so far.
 

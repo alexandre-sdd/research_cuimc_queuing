@@ -228,7 +228,7 @@ then that slot is occupied by a class-$i$ patient who originally accepted delay 
 
 The class index $i$ links that booked patient to the class object, written later as
 \[
-C_i = \{\lambda_i, b_i(\tau), \phi_i, \xi_i(\tau)\}.
+C_i = \{\lambda_i, b_i(\tau), \phi_i(\tau), \xi_i(\tau)\}.
 \]
 So the cell itself stores only the patient features that must remain attached to the appointment:
 the class identity $i$ and the original offered delay $\tau$.
@@ -236,7 +236,7 @@ The remaining class characteristics are recovered from $C_i$ when the simulator 
 \begin{itemize}[nosep]
     \item $\lambda_i$ governs future arrivals from class $i$,
     \item $b_i(\tau)$ governs booking acceptance when a class-$i$ request is offered delay $\tau$,
-    \item $\phi_i$ governs eventual pre-appointment cancellation for class-$i$ patients,
+    \item $\phi_i(\tau)$ governs daily pre-appointment cancellation for class-$i$ patients booked with delay $\tau$,
     \item $\xi_i(\tau)$ governs no-show at appointment time.
 \end{itemize}
 
@@ -309,7 +309,7 @@ $C_2=\{\lambda_2,b_2(\tau),\phi_2,\xi_2(\tau)\}$.
 That means:
 \begin{itemize}[nosep]
     \item future class-2 arrivals are generated with rate $\lambda_2$,
-    \item the patient's eventual pre-appointment cancellation behavior is governed by $\phi_2$,
+    \item the patient's daily pre-appointment cancellation behavior is governed by $\phi_2(1)$,
     \item if the patient reaches service, the no-show probability is $\xi_2(1)$ because the original booked delay is $\tau=1$.
 \end{itemize}
 
@@ -390,10 +390,10 @@ For example:
 For the second patient, the state stores only $(2,2)$.
 That is enough because class index $2$ points to
 \[
-C_2=\{\lambda_2,b_2(\tau),\phi_2,\xi_2(\tau)\}.
+C_2=\{\lambda_2,b_2(\tau),\phi_2(\tau),\xi_2(\tau)\}.
 \]
-So while the patient waits, the simulator uses the class-2 cancellation parameter $\phi_2$ to
-apply a daily cancellation risk, and if the patient reaches service it uses $\xi_2(2)$ for
+So while the patient waits, the simulator uses the class-2 cancellation function $\phi_2(\tau)$ to
+apply the daily cancellation probability $\phi_2(2)$, and if the patient reaches service it uses $\xi_2(2)$ for
 attendance.
 
 From this calendar, the derived day-start counts are:
@@ -447,7 +447,7 @@ Booking delay belongs to the behavioral rules.
 
 The class-specific behavior of each class $i \in \{1,2\}$ is described by
 \[
-B_i = \{b_i(\tau), \phi_i, \xi_i(\tau)\}.
+B_i = \{b_i(\tau), \phi_i(\tau), \xi_i(\tau)\}.
 \]
 
 In the current two-class prototype, arrivals are parameterized at the system level by
@@ -470,7 +470,7 @@ The class-specific arrival rates are then induced by
 
 Equivalently, the full class objects can still be written as
 \[
-C_i = \{\lambda_i, b_i(\tau), \phi_i, \xi_i(\tau)\},
+C_i = \{\lambda_i, b_i(\tau), \phi_i(\tau), \xi_i(\tau)\},
 \]
 but in the first simulation experiments the primitive demand parameters are
 $(\lambda,p)$ rather than $(\lambda_1,\lambda_2)$.
@@ -481,21 +481,21 @@ The interpretation is therefore:
     \item $p$: fraction of arrivals belonging to class 1,
     \item $\lambda_i$: implied arrival rate of class-$i$ requests per slot,
     \item $b_i(\tau)$: probability the patient declines the offered slot because the offered delay is too large,
-    \item $\phi_i$: eventual probability that a class-$i$ patient booked with $\tau \ge 1$ cancels before the appointment day,
+    \item $\phi_i(\tau)$: daily probability that a class-$i$ patient booked with original delay $\tau$ cancels at the end of a pre-appointment day,
     \item $\xi_i(\tau)$: no-show probability at appointment time, conditional on the patient still being scheduled.
 \end{itemize}
 
-In the current first version, $\phi_i$ is constant within class.
-The simulator converts this class-level quantity into a daily cancellation probability
+In the current first version, the daily cancellation function $\phi_i(\tau)$ is induced by a
+class-level eventual cancellation parameter $\bar{\phi}_i$ according to
 \[
-q_i(\tau)=
+\phi_i(\tau)=
 \begin{cases}
 0, & \tau=0,\\[0.4em]
-1-(1-\phi_i)^{1/\tau}, & \tau\ge 1,
+1-(1-\bar{\phi}_i)^{1/\tau}, & \tau\ge 1,
 \end{cases}
 \]
 so that a patient who booked with delay $\tau$ and faces one cancellation trial at the end of each
-pre-appointment day still has total cancellation probability $\phi_i$ before the appointment.
+pre-appointment day still has total cancellation probability $\bar{\phi}_i$ before the appointment.
 Later versions may generalize this further to a directly delay-sensitive cancellation object.
 
 \section{Event Dynamics}
@@ -528,13 +528,13 @@ At each active slot $(D,s)$, the simulator executes the following within-day ste
 \end{enumerate}
 
 After all $S$ slots of day $D$ have been processed, every still-scheduled future appointment
-stored as $(i,\tau)$ cancels independently with probability $q_i(\tau)$.
+stored as $(i,\tau)$ cancels independently with probability $\phi_i(\tau)$.
 Any canceled future slot is therefore reopened before day $D+1$ begins.
 This timing is operationally natural:
 \begin{itemize}[nosep]
     \item a booking with $\tau=1$ gets exactly one chance to cancel, namely at the end of the booking day,
     \item a booking with $\tau=2$ gets two daily cancellation opportunities before service,
-    \item the total cancellation probability across those daily trials remains $\phi_i$.
+    \item the total cancellation probability across those daily trials remains $\bar{\phi}_i$.
 \end{itemize}
 
 \subsection{FCFS Baseline Policy}

@@ -31,7 +31,7 @@ As of 2026-04-08, the project includes:
 - offered delay `\tau` separated from residual-delay state `r`
 - delay-sensitive balking
 - delay-sensitive no-show
-- daily pre-appointment cancellation driven by class-level `\phi_i`
+- daily pre-appointment cancellation described by `\phi_i(\tau)`
 - FCFS policy
 - latest-available policy
 - reserved-capacity policy
@@ -59,10 +59,10 @@ The standalone review of the initial formulation note identified three document-
 
 ## Most Recent Completed Task
 
-- Replaced pre-sampled cancellation days with a daily cancellation hazard derived from the class parameter `\phi_i`.
-- Simplified the slot-level state in [first_two_class_simulation_note.tex](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.tex) from `(i,\tau,c)` to `(i,\tau)`, with the class index `i` linking the booking to `C_i = \{\lambda_i, b_i(\tau), \phi_i, \xi_i(\tau)\}`.
-- Updated the simulator, tests, status memo, and behavior notebook so the documentation and code now agree on the cancellation dynamics.
-- Recompiled [first_two_class_simulation_note.pdf](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.pdf) after the model update.
+- Updated the reader-facing notation so `\phi_i(\tau)` denotes the daily cancellation function, which is the operational object used by the simulator.
+- Clarified in the note and status memo that the current implementation still induces `\phi_i(\tau)` from a class-level eventual cancellation parameter `\bar{\phi}_i`.
+- Updated the behavior-function notebook so the third curve is labeled as `\phi_i(\tau)` rather than `q_i(\tau)`.
+- Recompiled [first_two_class_simulation_note.pdf](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.pdf) after the notation update.
 
 ## Updated Task Assessment
 
