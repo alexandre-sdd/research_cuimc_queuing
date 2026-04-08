@@ -170,6 +170,69 @@ X_{i,r}^{D}
 This is the correct interpretation of the state-count variable.
 The index $r$ is a \emph{residual delay}, not a booking-time delay.
 
+\subsection{Worked Example of Y and X}
+
+It is useful to see one concrete calendar snapshot.
+Suppose:
+\[
+D=20, \qquad s=0, \qquad H=3, \qquad S=4.
+\]
+So we are at the start of day $20$, before processing the first slot of that day, and the
+rolling calendar covers days $20$, $21$, and $22$.
+
+Assume the slot-level state is:
+\[
+\begin{array}{c|cccc}
+& m=0 & m=1 & m=2 & m=3 \\
+\hline
+r=0 & 0 & (1,0,\varnothing) & (2,0,\varnothing) & 0 \\
+r=1 & (1,1,\varnothing) & 0 & (1,1,\varnothing) & (2,1,\varnothing) \\
+r=2 & 0 & (2,2,21) & (1,2,\varnothing) & 0
+\end{array}
+\]
+
+Interpretation:
+\begin{itemize}[nosep]
+    \item row $r=0$ corresponds to today's remaining slots, that is, day $20$,
+    \item row $r=1$ corresponds to day $21$,
+    \item row $r=2$ corresponds to day $22$,
+    \item entry $0$ means the slot is open,
+    \item entry $(i,\tau,c)$ means the slot is occupied by a class-$i$ patient who accepted an offered delay $\tau$, with cancellation marker $c$.
+\end{itemize}
+
+For example:
+\begin{itemize}[nosep]
+    \item $Y_{(20,0)}(1,0)=(1,1,\varnothing)$ means slot $m=0$ on day $21$ is booked by a class-1 patient who, when booking, accepted a one-day delay,
+    \item $Y_{(20,0)}(2,1)=(2,2,21)$ means slot $m=1$ on day $22$ is booked by a class-2 patient who accepted a two-day delay and is scheduled to cancel on day $21$ before service.
+\end{itemize}
+
+From this calendar, the derived day-start counts are:
+\[
+X_{1,0}^{20}=1,\quad X_{2,0}^{20}=1,
+\]
+\[
+X_{1,1}^{20}=2,\quad X_{2,1}^{20}=1,
+\]
+\[
+X_{1,2}^{20}=1,\quad X_{2,2}^{20}=1.
+\]
+
+So the vector $X_{i,r}^{20}$ is just a class-by-class count of the occupied entries in each row.
+It does \emph{not} remember which slot inside the day is occupied, nor does it retain the
+cancellation marker.
+That is why $X_{i,r}^{D}$ is a useful summary, but not the full state needed by the simulator.
+
+The distinction between $r$ and $\tau$ is also visible in this example.
+Consider the patient stored as
+\[
+Y_{(20,0)}(2,2)=(1,2,\varnothing).
+\]
+On day $20$, that patient contributes to $X_{1,2}^{20}$.
+If the patient remains scheduled, then at the start of day $21$ the same patient will contribute
+to $X_{1,1}^{21}$, because the \emph{residual delay} has fallen from $2$ to $1$.
+However, the patient's booking-time delay remains $\tau=2$, and that is the quantity that should
+continue to drive the behavioral functions $b_1(\tau)$ and $\xi_1(\tau)$.
+
 \subsection{Booking-Time Delay}
 
 Now define the behavioral delay variable separately:

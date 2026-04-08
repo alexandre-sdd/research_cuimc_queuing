@@ -59,11 +59,11 @@ The standalone review of the initial formulation note identified three document-
 
 ## Most Recent Completed Task
 
-- Added an explicit bootstrap summary helper to the simulation package so notebook uncertainty bands are computed directly from replication outputs rather than delegated to plotting defaults.
-- Updated the simulation and policy notebooks to show visible `tqdm` progress bars during bootstrap resampling and to expose notebook-level controls for the number of replications and bootstrap resamples.
-- Kept the current notebook default at `10` replications and `2,000` bootstrap resamples per summary so the workflow is materially more robust while still remaining runnable locally.
-- Validated the implementation with `pytest -q` and full `nbconvert` execution of [simulation.ipynb](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Notebooks/simulation.ipynb) and [policy_comparisons.ipynb](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Notebooks/policy_comparisons.ipynb).
+- Added a worked example to [first_two_class_simulation_note.tex](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.tex) to make the modeling objects `Y_t(r,m)` and `X_{i,r}^D` concrete.
+- The example now shows one small calendar snapshot, the induced day-start counts, and the way one patient's residual delay `r` changes over time while the behavioral delay `\tau` remains fixed.
+- This improves the note's readability for both contributors and supervisors without changing the simulator logic or current task priorities.
+- Recompiled [first_two_class_simulation_note.pdf](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.pdf) successfully after the documentation change.
 
 Commit:
 
-- to be recorded in git history for the bootstrap and progress-bar update
+- to be recorded in git history for the Y/X worked example update
