@@ -192,6 +192,11 @@ of each day, and service realizations are processed.
 \subsection{True State: Slot-Level Calendar}
 
 The true simulator state at time $t=(D,s)$ is the rolling slot-level calendar.
+It is helpful to think of this calendar as an $H \times S$ table. The row index $r$ tells us
+which day ahead we are looking at relative to the current day $D$: $r=0$ means ``today'',
+$r=1$ means ``tomorrow'', and so on. The column index $m$ tells us which slot within that day we
+are looking at: $m=0$ is the first slot of the day, $m=1$ the second, and so on until $m=S-1$.
+
 For each residual day offset
 \[
 r \in \{0,1,\dots,H-1\}
@@ -205,11 +210,18 @@ define
 Y_t(r,m).
 \]
 
-Interpretation:
-\begin{itemize}[nosep]
-    \item $Y_t(r,m)=0$ if slot $(D+r,m)$ is currently open,
-    \item $Y_t(r,m)=\left(i,\tau,c\right)$ if slot $(D+r,m)$ is occupied by a class-$i$ patient whose original offered delay was $\tau$, with cancellation marker $c$.
-\end{itemize}
+So $Y_t(r,m)$ is simply the content of row $r$, column $m$ of that rolling calendar.
+If
+\[
+Y_t(r,m)=0,
+\]
+then that slot is open.
+If
+\[
+Y_t(r,m)=\left(i,\tau,c\right),
+\]
+then that slot is occupied by a class-$i$ patient who originally accepted delay $\tau$, with
+cancellation marker $c$.
 
 The cancellation marker $c$ is either:
 \begin{itemize}[nosep]
@@ -242,7 +254,9 @@ for
 i \in \{1,2\}, \qquad r \in \{0,1,\dots,H-1\}.
 \]
 
-Interpretation:
+In words, $X_{i,r}^{D}$ counts how many class-$i$ patients appear in row $r$ of the calendar at
+the start of day $D$.
+Equivalently,
 \[
 X_{i,r}^{D}
 =

@@ -59,11 +59,11 @@ The standalone review of the initial formulation note identified three document-
 
 ## Most Recent Completed Task
 
-- Updated the time-index section of [first_two_class_simulation_note.tex](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.tex) so it now uses generic labels `(D,s)` in the transition figure rather than a hard-coded day like `20`.
-- Removed the old timeline table and replaced it with a shared graph of `D_n` and `s_n` against the epoch index `n`, starting from day `0` for readability.
-- Simplified the rollover arrow in the transition figure by removing the red annotation and keeping the visual emphasis on the state change itself.
+- Rewrote the explanation of the slot-level state in [first_two_class_simulation_note.tex](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.tex) to make the roles of `r` and `m` more intuitive.
+- The note now explains `r` as the row of the rolling calendar, that is, how many days ahead from day `D` we are looking, and `m` as the column, that is, which slot within that day we are looking at.
+- Replaced the heavier interpretation blocks with shorter prose so the notation reads more naturally.
 - Recompiled [first_two_class_simulation_note.pdf](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.pdf) after the documentation update.
 
 Commit:
 
-- to be recorded in git history for the combined D/s graph update
+- to be recorded in git history for the r/m clarification update
