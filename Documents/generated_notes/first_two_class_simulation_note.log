@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.3.8)  8 APR 2026 13:40
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.3.8)  8 APR 2026 13:47
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -773,20 +773,22 @@ Overfull \hbox (6.92758pt too wide) in paragraph at lines 262--262
 
 [11]
 
-[12] (Documents/generated_notes/first_two_class_simulation_note.aux)
+[12]
+
+[13] (Documents/generated_notes/first_two_class_simulation_note.aux)
  ***********
 LaTeX2e <2024-11-01> patch level 2
 L3 programming layer <2025-01-18>
  ***********
 Package rerunfilecheck Info: File `first_two_class_simulation_note.out' has not
  changed.
-(rerunfilecheck)             Checksum: 5464F539BC714BAE89A9BB0321A68262;6630.
+(rerunfilecheck)             Checksum: EA37FE6AB937093636D367FCC9469974;7769.
  ) 
 Here is how much of TeX's memory you used:
- 21510 strings out of 473190
- 396064 string characters out of 5715801
- 783066 words of memory out of 5000000
- 44356 multiletter control sequences out of 15000+600000
+ 21521 strings out of 473190
+ 396219 string characters out of 5715801
+ 783069 words of memory out of 5000000
+ 44361 multiletter control sequences out of 15000+600000
  570956 words of font info for 82 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  102i,15n,107p,594b,873s stack positions out of 10000i,1000n,20000p,200000b,200000s
@@ -808,10 +810,10 @@ ve/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/texlive
 025/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb></usr/local/texli
 ve/2025/texmf-dist/fonts/type1/public/cm-super/sfrm1095.pfb>
 Output written on Documents/generated_notes/first_two_class_simulation_note.pdf
- (12 pages, 240563 bytes).
+ (13 pages, 245782 bytes).
 PDF statistics:
- 298 PDF objects out of 1000 (max. 8388607)
- 247 compressed objects within 3 object streams
- 53 named destinations out of 1000 (max. 500000)
- 269 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 324 PDF objects out of 1000 (max. 8388607)
+ 272 compressed objects within 3 object streams
+ 59 named destinations out of 1000 (max. 500000)
+ 309 words of extra memory for PDF output out of 10000 (max. 10000000)
 

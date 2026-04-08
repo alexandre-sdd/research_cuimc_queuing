@@ -116,6 +116,14 @@ DAILY_JOURNAL_AGGREGATE_COLUMNS = [
 
 @dataclass(frozen=True)
 class PatientClassConfig:
+    """
+    Behavioral and demand parameters for one patient class.
+
+    In the current prototype, ``cancel_probability`` stores the class-level
+    eventual pre-appointment cancellation parameter ``\\bar{\\phi}_i``. The
+    simulator converts it into the daily cancellation function
+    ``\\phi_i(\\tau)`` through ``daily_cancellation_hazard``.
+    """
     class_id: int
     arrival_rate: float
     balk_probability: ProbabilityFn
@@ -172,6 +180,13 @@ class SimulationConfig:
 
 @dataclass
 class Appointment:
+    """
+    Booked-slot record carried by the simulator.
+
+    Mathematically, the minimal slot state is ``(i, tau)``. The implementation
+    keeps extra timing fields so results can be audited, summarized, and linked
+    back to booking and service events.
+    """
     patient_id: int
     class_id: int
     booking_day: int
