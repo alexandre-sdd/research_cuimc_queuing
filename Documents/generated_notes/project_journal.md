@@ -59,11 +59,11 @@ The standalone review of the initial formulation note identified three document-
 
 ## Most Recent Completed Task
 
-- Added a worked example to [first_two_class_simulation_note.tex](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.tex) to make the modeling objects `Y_t(r,m)` and `X_{i,r}^D` concrete.
-- The example now shows one small calendar snapshot, the induced day-start counts, and the way one patient's residual delay `r` changes over time while the behavioral delay `\tau` remains fixed.
-- This improves the note's readability for both contributors and supervisors without changing the simulator logic or current task priorities.
-- Recompiled [first_two_class_simulation_note.pdf](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.pdf) successfully after the documentation change.
+- Added a dedicated time-advancement visualization to [first_two_class_simulation_note.tex](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.tex) immediately after the decision-epoch definition.
+- The note now shows both the recursive rule for the next epoch and a single timeline table that makes the joint evolution of day index `D` and slot index `s` explicit.
+- This complements the earlier worked example for `Y_t(r,m)` and `X_{i,r}^D` by clarifying the clock on which those state variables evolve.
+- Recompiled [first_two_class_simulation_note.pdf](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.pdf) after the documentation update.
 
 Commit:
 
-- to be recorded in git history for the Y/X worked example update
+- to be recorded in git history for the time-index visualization update

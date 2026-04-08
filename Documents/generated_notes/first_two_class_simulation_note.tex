@@ -107,6 +107,39 @@ H = 15 \text{ days}, \qquad S = 25 \text{ slots per day},
 \]
 where $H$ is the booking horizon.
 
+\subsection{How Time Advances}
+
+The ordered pair $t=(D,s)$ advances lexicographically:
+\[
+(D,s)^+
+=
+\begin{cases}
+(D,s+1), & \text{if } s < S-1,\\
+(D+1,0), & \text{if } s = S-1.
+\end{cases}
+\]
+
+So the slot index $s$ moves within a day, and the day index $D$ increases only when the
+current day has exhausted all $S$ slots.
+
+The following table shows both coordinates on the same timeline:
+\[
+\begin{array}{c|cccccccc}
+\text{epoch } n
+& 0 & 1 & 2 & \cdots & S-1 & S & S+1 & \cdots \\
+\hline
+D
+& 20 & 20 & 20 & \cdots & 20 & 21 & 21 & \cdots \\
+s
+& 0 & 1 & 2 & \cdots & S-1 & 0 & 1 & \cdots \\
+t_n=(D,s)
+& (20,0) & (20,1) & (20,2) & \cdots & (20,S-1) & (21,0) & (21,1) & \cdots
+\end{array}
+\]
+
+This is the time scale on which arrivals, booking decisions, cancellations applied at the start
+of each day, and service realizations are processed.
+
 \subsection{True State: Slot-Level Calendar}
 
 The true simulator state at time $t=(D,s)$ is the rolling slot-level calendar.
