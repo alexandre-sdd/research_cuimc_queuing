@@ -59,11 +59,11 @@ The standalone review of the initial formulation note identified three document-
 
 ## Most Recent Completed Task
 
-- Clarified in [first_two_class_simulation_note.tex](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.tex) that the use of `D=20` in the time example is arbitrary and purely illustrative.
-- Added an actual graphical time-evolution diagram for `t=(D,s)`, with nodes and arrows showing movement within a day and the rollover from `(D,S-1)` to `(D+1,0)`.
-- Kept the table as a complementary view so the reader now has both an algebraic and a visual representation of the decision epochs.
+- Updated the time-index section of [first_two_class_simulation_note.tex](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.tex) so it now uses generic labels `(D,s)` in the transition figure rather than a hard-coded day like `20`.
+- Removed the old timeline table and replaced it with a shared graph of `D_n` and `s_n` against the epoch index `n`, starting from day `0` for readability.
+- Simplified the rollover arrow in the transition figure by removing the red annotation and keeping the visual emphasis on the state change itself.
 - Recompiled [first_two_class_simulation_note.pdf](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.pdf) after the documentation update.
 
 Commit:
 
-- to be recorded in git history for the graphical time-evolution update
+- to be recorded in git history for the combined D/s graph update
