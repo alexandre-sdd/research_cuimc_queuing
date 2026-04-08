@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import Any, Optional, Sequence
+from dataclasses import dataclass
+from typing import Any, Sequence
 
 import numpy as np
 import pandas as pd
 
-from .behaviors import ProbabilityFn, clamp_probability
+from .behaviors import ProbabilityFn, clamp_probability, daily_cancellation_hazard
 from .policies import AllocationPolicy, FCFSPolicy
 
 
@@ -44,7 +44,6 @@ COHORT_COLUMNS = [
     "appointment_day",
     "appointment_slot",
     "tau_booked",
-    "cancel_day",
     "outcome",
     "resolution_day",
     "resolution_slot",
@@ -180,7 +179,6 @@ class Appointment:
     appointment_day: int
     appointment_slot: int
     tau_booked: int
-    cancel_day: int | None
     tracked_cohort: bool
 
 
@@ -265,8 +263,8 @@ def simulate(
 
     The engine advances one slot at a time, generates class-specific arrivals,
     lets the booking policy offer an eligible future slot, applies balking and
-    pre-appointment cancellation, and resolves booked patients as served or
-    no-show at appointment time.
+    daily pre-appointment cancellation hazards, and resolves booked patients as
+    served or no-show at appointment time.
     """
     config = config or SimulationConfig()
     class_configs = _validate_class_configs(class_configs)
@@ -283,11 +281,18 @@ def simulate(
     cohort_records: dict[int, dict[str, Any]] = {}
     next_patient_id = 1
 
-    def apply_cancellations(day: int) -> None:
-        """Release slots whose booked patient cancels at the start of the given day."""
+    def apply_end_of_day_cancellations(day: int) -> None:
+        """Release future slots whose booked patient cancels at the end of the day."""
         for day_offset, day_slots in enumerate(calendar):
             for slot_index, appointment in enumerate(day_slots):
-                if appointment is None or appointment.cancel_day != day:
+                if appointment is None or appointment.appointment_day <= day:
+                    continue
+                class_config = class_lookup[appointment.class_id]
+                cancel_hazard = daily_cancellation_hazard(
+                    class_config.cancel_probability,
+                    appointment.tau_booked,
+                )
+                if rng.random() >= cancel_hazard:
                     continue
                 if appointment.tracked_cohort:
                     cohort_record = cohort_records[appointment.patient_id]
@@ -318,13 +323,9 @@ def simulate(
             )
 
     for day in range(config.total_days):
-        apply_cancellations(day)
         if _is_measured_day(day, config):
             record_state(day)
         for slot in range(config.slots_per_day):
-            if slot > 0:
-                apply_cancellations(day)
-
             arrivals_by_class = {
                 class_config.class_id: int(rng.poisson(class_config.arrival_rate))
                 for class_config in class_configs
@@ -376,11 +377,6 @@ def simulate(
                 if not booked or selection is None:
                     continue
 
-                cancel_day: int | None = None
-                if tau_offered is not None and tau_offered >= 1:
-                    if rng.random() < class_config.cancel_probability:
-                        cancel_day = int(rng.integers(day, offered_day))
-
                 appointment = Appointment(
                     patient_id=next_patient_id,
                     class_id=class_id,
@@ -389,7 +385,6 @@ def simulate(
                     appointment_day=offered_day,
                     appointment_slot=offered_slot,
                     tau_booked=tau_offered,
-                    cancel_day=cancel_day,
                     tracked_cohort=_is_measured_day(day, config),
                 )
                 calendar[selection.day_offset][selection.slot_index] = appointment
@@ -403,7 +398,6 @@ def simulate(
                         "appointment_day": appointment.appointment_day,
                         "appointment_slot": appointment.appointment_slot,
                         "tau_booked": appointment.tau_booked,
-                        "cancel_day": appointment.cancel_day,
                         "outcome": None,
                         "resolution_day": None,
                         "resolution_slot": None,
@@ -450,7 +444,7 @@ def simulate(
                 )
             calendar[0][slot] = None
 
-        apply_cancellations(day)
+        apply_end_of_day_cancellations(day)
         calendar.pop(0)
         calendar.append([None for _ in range(config.slots_per_day)])
 

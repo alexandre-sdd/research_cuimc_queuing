@@ -12,7 +12,7 @@ Going forward, after each completed task I should:
 
 ## Current State
 
-As of 2026-04-07, the project includes:
+As of 2026-04-08, the project includes:
 
 - a reusable simulation package in [appointment_simulation](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/appointment_simulation)
 - a formal note in [first_two_class_simulation_note.tex](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.tex)
@@ -31,7 +31,7 @@ As of 2026-04-07, the project includes:
 - offered delay `\tau` separated from residual-delay state `r`
 - delay-sensitive balking
 - delay-sensitive no-show
-- explicit pre-appointment cancellation
+- daily pre-appointment cancellation driven by class-level `\phi_i`
 - FCFS policy
 - latest-available policy
 - reserved-capacity policy
@@ -59,11 +59,15 @@ The standalone review of the initial formulation note identified three document-
 
 ## Most Recent Completed Task
 
-- Reordered the `True State: Slot-Level Calendar` section in [first_two_class_simulation_note.tex](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.tex) so `Y_t(r,m)` is defined before the calendar schemes and examples.
-- Kept the transposed calendar display with days as columns, but fixed the presentation order so the notation is introduced before it is used visually.
-- This makes the section more coherent pedagogically without changing the model itself.
-- Recompiled [first_two_class_simulation_note.pdf](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.pdf) after the documentation update.
+- Replaced pre-sampled cancellation days with a daily cancellation hazard derived from the class parameter `\phi_i`.
+- Simplified the slot-level state in [first_two_class_simulation_note.tex](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.tex) from `(i,\tau,c)` to `(i,\tau)`, with the class index `i` linking the booking to `C_i = \{\lambda_i, b_i(\tau), \phi_i, \xi_i(\tau)\}`.
+- Updated the simulator, tests, status memo, and behavior notebook so the documentation and code now agree on the cancellation dynamics.
+- Recompiled [first_two_class_simulation_note.pdf](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.pdf) after the model update.
 
-Commit:
+## Updated Task Assessment
 
-- to be recorded in git history for the notation-order fix
+1. Add explicit overbooking logic and its metrics.
+2. Add reminder / confirmation interventions as parameterized behavior changes.
+3. Add a payer-mix and margin layer for financial analysis.
+4. Introduce a cleaner mapping from panel size `N` to the total arrival rate `\lambda` and class mix `p`, or equivalently to class-specific rates `\lambda_i`.
+5. Calibrate assumptions once scheduling-process details and Columbia Doctors data are available.

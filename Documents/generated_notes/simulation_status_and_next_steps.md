@@ -18,7 +18,7 @@ The current simulator is now compliant with the **initial model** described in t
 - two patient types arriving to a booking system
 - delay-sensitive booking behavior
 - delay-sensitive no-show behavior
-- explicit pre-appointment cancellation
+- daily pre-appointment cancellation driven by class-level `\phi_i`
 - FCFS allocation
 - a class-reservation policy
 - a class-specific booking-window policy
@@ -40,7 +40,7 @@ It is **not yet fully compliant** with the broader Phase 1 ambitions in the emai
 | Two types of patients arrive to call center to book | Implemented | The engine supports two classes now and is already general enough for more than two. |
 | Scheduling-delay sensitivity for booking | Implemented | `b_i(\tau)` is the class-specific booking-decline function. |
 | Scheduling-delay sensitivity for no-shows | Implemented | `\xi_i(\tau)` uses the original offered delay, which is the correct formulation for this problem. |
-| Cancellations matter operationally | Implemented | Patients can pre-cancel before the appointment and reopen slots. |
+| Cancellations matter operationally | Implemented | Patients face daily pre-appointment cancellation risk and reopened future slots return to the calendar. |
 | FCFS scheduling policy | Implemented | This remains the baseline policy. |
 | Reserve `x%` / `100-x%` capacity by type | Implemented | Added a strict reserved-capacity policy. Shares are converted to daily slot counts. |
 | Max booking window `k_1`, `k_2` by type | Implemented | Added a class-specific booking-window policy. |
@@ -82,6 +82,14 @@ The class-specific behavior object remains:
 \[
 B_i = \{b_i(\tau), \phi_i, \xi_i(\tau)\}.
 \]
+
+Here `\phi_i` is interpreted as the eventual pre-appointment cancellation probability for a class-`i`
+patient who booked with `\tau \ge 1`. The simulator converts that into a daily cancellation hazard
+\[
+q_i(\tau)=1-(1-\phi_i)^{1/\tau}
+\]
+for `\tau \ge 1`, with `q_i(0)=0`, so that cancellations are resolved day by day rather than
+drawn in advance.
 
 This keeps the first notebook parameterization simple while remaining aligned with the literature reviewed so far.
 

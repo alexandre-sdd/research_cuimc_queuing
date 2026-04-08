@@ -222,10 +222,23 @@ Y_t(r,m)=0,
 then that slot is open.
 If
 \[
-Y_t(r,m)=\left(i,\tau,c\right),
+Y_t(r,m)=\left(i,\tau\right),
 \]
-then that slot is occupied by a class-$i$ patient who originally accepted delay $\tau$, with
-cancellation marker $c$.
+then that slot is occupied by a class-$i$ patient who originally accepted delay $\tau$.
+
+The class index $i$ links that booked patient to the class object, written later as
+\[
+C_i = \{\lambda_i, b_i(\tau), \phi_i, \xi_i(\tau)\}.
+\]
+So the cell itself stores only the patient features that must remain attached to the appointment:
+the class identity $i$ and the original offered delay $\tau$.
+The remaining class characteristics are recovered from $C_i$ when the simulator needs them:
+\begin{itemize}[nosep]
+    \item $\lambda_i$ governs future arrivals from class $i$,
+    \item $b_i(\tau)$ governs booking acceptance when a class-$i$ request is offered delay $\tau$,
+    \item $\phi_i$ governs eventual pre-appointment cancellation for class-$i$ patients,
+    \item $\xi_i(\tau)$ governs no-show at appointment time.
+\end{itemize}
 
 Schematically, the rolling calendar has the following structure:
 \begin{center}
@@ -264,21 +277,21 @@ A small illustrative example with $H=3$ and $S=4$ looks like this:
 \hline
 \cellcolor{gray!10}\shortstack[l]{\textbf{slot 0}\\($m=0$)} &
 \cellcolor{green!12}\textsf{open} &
-\cellcolor{blue!12}$(1,0,\varnothing)$ &
+\cellcolor{blue!12}$(1,0)$ &
 \cellcolor{green!12}\textsf{open} \\
 \hline
 \cellcolor{gray!10}\shortstack[l]{\textbf{slot 1}\\($m=1$)} &
-\cellcolor{blue!12}$(1,0,\varnothing)$ &
+\cellcolor{blue!12}$(1,0)$ &
 \cellcolor{green!12}\textsf{open} &
-\cellcolor{orange!18}$(2,2,D+1)$ \\
+\cellcolor{orange!18}$(2,2)$ \\
 \hline
 \cellcolor{gray!10}\shortstack[l]{\textbf{slot 2}\\($m=2$)} &
 \cellcolor{green!12}\textsf{open} &
-\cellcolor{orange!18}$(2,1,\varnothing)$ &
-\cellcolor{blue!12}$(1,2,\varnothing)$ \\
+\cellcolor{orange!18}$(2,1)$ &
+\cellcolor{blue!12}$(1,2)$ \\
 \hline
 \cellcolor{gray!10}\shortstack[l]{\textbf{slot 3}\\($m=3$)} &
-\cellcolor{orange!18}$(2,0,\varnothing)$ &
+\cellcolor{orange!18}$(2,0)$ &
 \cellcolor{green!12}\textsf{open} &
 \cellcolor{green!12}\textsf{open} \\
 \hline
@@ -289,19 +302,20 @@ A small illustrative example with $H=3$ and $S=4$ looks like this:
 This example is read column by column.
 The first column is today's remaining schedule, the second column is tomorrow's schedule, and the
 third column is the schedule for the day after tomorrow.
-For instance, the entry in day-column $r=1$ and slot-row $m=2$ is $(2,1,\varnothing)$, meaning
-that slot $2$ of day $D+1$ is occupied by a class-2 patient who accepted a one-day delay and is
-not scheduled to cancel before service.
-
-The cancellation marker $c$ is either:
+For instance, the entry in day-column $r=1$ and slot-row $m=2$ is $(2,1)$, meaning that slot $2$
+of day $D+1$ is occupied by a class-2 patient who accepted a one-day delay.
+Because the patient belongs to class $2$, the simulator knows to use the class-2 behavior object
+$C_2=\{\lambda_2,b_2(\tau),\phi_2,\xi_2(\tau)\}$.
+That means:
 \begin{itemize}[nosep]
-    \item a future calendar day on which the appointment will be canceled before service, or
-    \item $\varnothing$ if the appointment will not pre-cancel.
+    \item future class-2 arrivals are generated with rate $\lambda_2$,
+    \item the patient's eventual pre-appointment cancellation behavior is governed by $\phi_2$,
+    \item if the patient reaches service, the no-show probability is $\xi_2(1)$ because the original booked delay is $\tau=1$.
 \end{itemize}
 
 This is the minimal state representation that supports:
 \begin{itemize}[nosep]
-    \item explicit holes created by cancellation,
+    \item explicit holes created by daily cancellation,
     \item slot-level FCFS or non-FCFS allocation,
     \item class-specific booked-delay tracking,
     \item later policy experiments that depend on slot position.
@@ -311,7 +325,8 @@ This is the minimal state representation that supports:
 
 Although the slot-level calendar is the true state, it is still useful to retain an aggregate
 day-start summary that resembles the literature.
-At the start of day $D$, after applying cancellations for day $D$ and before processing slot $0$,
+At the start of day $D$, after the previous day's end-of-day cancellations and before processing
+slot $0$,
 define
 \[
 X_{i,r}^{D}
@@ -351,9 +366,9 @@ Assume the slot-level state is:
 \begin{array}{c|cccc}
 & m=0 & m=1 & m=2 & m=3 \\
 \hline
-r=0 & 0 & (1,0,\varnothing) & (2,0,\varnothing) & 0 \\
-r=1 & (1,1,\varnothing) & 0 & (1,1,\varnothing) & (2,1,\varnothing) \\
-r=2 & 0 & (2,2,21) & (1,2,\varnothing) & 0
+r=0 & 0 & (1,0) & (2,0) & 0 \\
+r=1 & (1,1) & 0 & (1,1) & (2,1) \\
+r=2 & 0 & (2,2) & (1,2) & 0
 \end{array}
 \]
 
@@ -363,14 +378,23 @@ Interpretation:
     \item row $r=1$ corresponds to day $21$,
     \item row $r=2$ corresponds to day $22$,
     \item entry $0$ means the slot is open,
-    \item entry $(i,\tau,c)$ means the slot is occupied by a class-$i$ patient who accepted an offered delay $\tau$, with cancellation marker $c$.
+    \item entry $(i,\tau)$ means the slot is occupied by a class-$i$ patient who accepted an offered delay $\tau$.
 \end{itemize}
 
 For example:
 \begin{itemize}[nosep]
-    \item $Y_{(20,0)}(1,0)=(1,1,\varnothing)$ means slot $m=0$ on day $21$ is booked by a class-1 patient who, when booking, accepted a one-day delay,
-    \item $Y_{(20,0)}(2,1)=(2,2,21)$ means slot $m=1$ on day $22$ is booked by a class-2 patient who accepted a two-day delay and is scheduled to cancel on day $21$ before service.
+    \item $Y_{(20,0)}(1,0)=(1,1)$ means slot $m=0$ on day $21$ is booked by a class-1 patient who, when booking, accepted a one-day delay,
+    \item $Y_{(20,0)}(2,1)=(2,2)$ means slot $m=1$ on day $22$ is booked by a class-2 patient who accepted a two-day delay.
 \end{itemize}
+
+For the second patient, the state stores only $(2,2)$.
+That is enough because class index $2$ points to
+\[
+C_2=\{\lambda_2,b_2(\tau),\phi_2,\xi_2(\tau)\}.
+\]
+So while the patient waits, the simulator uses the class-2 cancellation parameter $\phi_2$ to
+apply a daily cancellation risk, and if the patient reaches service it uses $\xi_2(2)$ for
+attendance.
 
 From this calendar, the derived day-start counts are:
 \[
@@ -385,7 +409,7 @@ X_{1,2}^{20}=1,\quad X_{2,2}^{20}=1.
 
 So the vector $X_{i,r}^{20}$ is just a class-by-class count of the occupied entries in each row.
 It does \emph{not} remember which slot inside the day is occupied, nor does it retain the
-cancellation marker.
+full slot-level identity of individual patients.
 That is why $X_{i,r}^{D}$ is a useful summary, but not the full state needed by the simulator.
 
 The distinction between $r$ and $\tau$ is also visible in this example.
@@ -457,21 +481,30 @@ The interpretation is therefore:
     \item $p$: fraction of arrivals belonging to class 1,
     \item $\lambda_i$: implied arrival rate of class-$i$ requests per slot,
     \item $b_i(\tau)$: probability the patient declines the offered slot because the offered delay is too large,
-    \item $\phi_i$: one-shot pre-appointment cancellation probability after booking,
+    \item $\phi_i$: eventual probability that a class-$i$ patient booked with $\tau \ge 1$ cancels before the appointment day,
     \item $\xi_i(\tau)$: no-show probability at appointment time, conditional on the patient still being scheduled.
 \end{itemize}
 
 In the current first version, $\phi_i$ is constant within class.
-Later versions may generalize this to $\phi_i(\tau)$ if cancellation is also delay-sensitive.
+The simulator converts this class-level quantity into a daily cancellation probability
+\[
+q_i(\tau)=
+\begin{cases}
+0, & \tau=0,\\[0.4em]
+1-(1-\phi_i)^{1/\tau}, & \tau\ge 1,
+\end{cases}
+\]
+so that a patient who booked with delay $\tau$ and faces one cancellation trial at the end of each
+pre-appointment day still has total cancellation probability $\phi_i$ before the appointment.
+Later versions may generalize this further to a directly delay-sensitive cancellation object.
 
 \section{Event Dynamics}
 
 \subsection{Slot-Level Event Order}
 
-At each active slot $(D,s)$, the simulator executes the following steps.
+At each active slot $(D,s)$, the simulator executes the following within-day steps.
 
 \begin{enumerate}[leftmargin=*, itemsep=0.35em]
-    \item Apply all cancellations whose cancellation day is $D$.
     \item Generate arrivals
     \[
     A_i(D,s) \sim \mathrm{Poisson}(\lambda_i), \qquad i \in \{1,2\}.
@@ -487,13 +520,22 @@ At each active slot $(D,s)$, the simulator executes the following steps.
     \[
     1 - b_i(\tau).
     \]
-    \item If the patient books and $\tau \ge 1$, then with probability $\phi_i$ a cancellation day is sampled uniformly from the days strictly before the appointment day.
     \item When the active slot is served, the patient in that slot, if any, attends with probability
     \[
     1 - \xi_i(\tau),
     \]
     where $\tau$ is the original delay stored when the patient booked.
 \end{enumerate}
+
+After all $S$ slots of day $D$ have been processed, every still-scheduled future appointment
+stored as $(i,\tau)$ cancels independently with probability $q_i(\tau)$.
+Any canceled future slot is therefore reopened before day $D+1$ begins.
+This timing is operationally natural:
+\begin{itemize}[nosep]
+    \item a booking with $\tau=1$ gets exactly one chance to cancel, namely at the end of the booking day,
+    \item a booking with $\tau=2$ gets two daily cancellation opportunities before service,
+    \item the total cancellation probability across those daily trials remains $\phi_i$.
+\end{itemize}
 
 \subsection{FCFS Baseline Policy}
 
@@ -518,7 +560,9 @@ For patients who arrive during the measured window, define:
 \begin{align*}
 \mathrm{Arrivals}_i &= \text{number of class-}i\text{ appointment requests}, \\
 \mathrm{Booked}_i &= \text{number of class-}i\text{ requests that accept an offer}, \\
-\mathrm{Balked}_i &= \text{number of class-}i\text{ requests that do not book}, \\
+\mathrm{Balked}_i &= \text{number of class-}i\text{ requests that were offered a slot and declined it}, \\
+\mathrm{NoOffer}_i &= \text{number of class-}i\text{ requests for which no eligible slot was available}, \\
+\mathrm{NotBooked}_i &= \mathrm{Balked}_i + \mathrm{NoOffer}_i, \\
 \mathrm{Canceled}_i &= \text{number of class-}i\text{ booked patients who pre-cancel}, \\
 \mathrm{NoShow}_i &= \text{number of class-}i\text{ booked patients who remain scheduled but do not attend}, \\
 \mathrm{Served}_i &= \text{number of class-}i\text{ booked patients who attend}, \\
@@ -599,7 +643,7 @@ The simulation differs from Green and Savin in several ways:
 \begin{itemize}[nosep]
     \item it allows two patient classes rather than one homogeneous stream,
     \item it includes explicit balking before booking,
-    \item it includes explicit pre-appointment cancellation timing,
+    \item it includes daily pre-appointment cancellation that creates explicit holes in the calendar,
     \item it does not yet model no-show rescheduling.
 \end{itemize}
 
@@ -659,7 +703,7 @@ Liu and Ziya (2014) & queue length in $M/M/1$ or $M/D/1$ style models & congesti
 \addlinespace
 Liu (2015) & queue/window state with finite scheduling window $K$ & delay implied by admissible backlog at booking & optimization over window size rather than fixed-horizon simulation \\
 \addlinespace
-This simulator & explicit rolling calendar $Y_t(r,m)$ plus derived $X_{i,r}^D$ & original offered delay $\tau$ & richer operational detail, two classes, explicit cancellation holes, policy plug points \\
+This simulator & explicit rolling calendar $Y_t(r,m)$ plus derived $X_{i,r}^D$ & original offered delay $\tau$ & richer operational detail, two classes, daily cancellation holes, policy plug points \\
 \bottomrule
 \end{tabular}
 \normalsize

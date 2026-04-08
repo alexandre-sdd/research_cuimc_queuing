@@ -22,6 +22,25 @@ def constant_probability(value: float) -> ProbabilityFn:
     return fn
 
 
+def daily_cancellation_hazard(cancel_probability: float, tau: int) -> float:
+    """
+    Convert an eventual pre-appointment cancellation probability into a daily hazard.
+
+    For a patient who booked with delay ``tau >= 1``, the simulator applies one
+    cancellation trial at the end of each pre-appointment day. This helper
+    returns the constant daily cancellation probability that yields total
+    cancellation probability ``cancel_probability`` over those ``tau`` trials.
+    Same-day bookings (``tau <= 0``) have no pre-appointment cancellation
+    opportunity and therefore a zero hazard.
+    """
+    if tau <= 0:
+        return 0.0
+    cancel_probability = clamp_probability(cancel_probability)
+    if cancel_probability >= 1.0:
+        return 1.0
+    return clamp_probability(1.0 - (1.0 - cancel_probability) ** (1.0 / float(tau)))
+
+
 def step_balking(
     threshold: int,
     low_delay_probability: float = 0.0,

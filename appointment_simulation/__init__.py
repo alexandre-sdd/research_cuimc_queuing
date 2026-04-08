@@ -1,5 +1,6 @@
 from .behaviors import (
     constant_probability,
+    daily_cancellation_hazard,
     exponential_no_show,
     green_savin_no_show,
     logistic_balking,
@@ -34,6 +35,7 @@ __all__ = [
     "behavior_profile_frame",
     "bootstrap_metric_summary",
     "constant_probability",
+    "daily_cancellation_hazard",
     "effective_cancellation_probability",
     "exponential_no_show",
     "green_savin_no_show",

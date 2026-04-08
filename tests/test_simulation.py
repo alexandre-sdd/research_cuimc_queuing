@@ -12,6 +12,7 @@ from appointment_simulation import (
     behavior_profile_frame,
     bootstrap_metric_summary,
     constant_probability,
+    daily_cancellation_hazard,
     green_savin_no_show,
     run_lambda_sweep,
     simulate,
@@ -219,16 +220,32 @@ def test_behavior_profiles_match_simulator_conventions() -> None:
         "tau_booked",
         "balk_probability",
         "no_show_probability",
-        "effective_cancel_probability",
+        "eventual_cancel_probability",
+        "daily_cancel_probability",
     }
     assert len(frame) == 10
-    assert (frame.loc[frame["tau_booked"] == 0, "effective_cancel_probability"] == 0.0).all()
+    assert (frame.loc[frame["tau_booked"] == 0, "eventual_cancel_probability"] == 0.0).all()
+    assert (frame.loc[frame["tau_booked"] == 0, "daily_cancel_probability"] == 0.0).all()
     assert (
-        frame.loc[(frame["class_id"] == 1) & (frame["tau_booked"] >= 1), "effective_cancel_probability"] == 0.25
+        frame.loc[(frame["class_id"] == 1) & (frame["tau_booked"] >= 1), "eventual_cancel_probability"] == 0.25
     ).all()
     assert (
-        frame.loc[(frame["class_id"] == 2) & (frame["tau_booked"] >= 1), "effective_cancel_probability"] == 0.40
+        frame.loc[(frame["class_id"] == 2) & (frame["tau_booked"] >= 1), "eventual_cancel_probability"] == 0.40
     ).all()
+    daily_cancel_tau_4 = frame.loc[
+        (frame["class_id"] == 1) & (frame["tau_booked"] == 4),
+        "daily_cancel_probability",
+    ].iloc[0]
+    assert 0.0 < daily_cancel_tau_4 < 0.25
+
+
+def test_daily_cancellation_hazard_matches_eventual_phi_over_tau_days() -> None:
+    hazard = daily_cancellation_hazard(0.36, tau=3)
+    eventual = 1.0 - (1.0 - hazard) ** 3
+
+    assert hazard > 0.0
+    assert abs(eventual - 0.36) < 1e-10
+    assert daily_cancellation_hazard(0.36, tau=0) == 0.0
 
 
 def test_step_balking_changes_probability_at_threshold() -> None:

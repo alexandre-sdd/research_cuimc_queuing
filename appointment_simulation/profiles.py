@@ -4,15 +4,13 @@ from typing import Sequence
 
 import pandas as pd
 
-from .behaviors import clamp_probability
+from .behaviors import clamp_probability, daily_cancellation_hazard
 from .core import PatientClassConfig
 
 
 def effective_cancellation_probability(class_config: PatientClassConfig, tau: int) -> float:
-    """Return the pre-appointment cancellation probability used by the simulator."""
-    if tau <= 0:
-        return 0.0
-    return clamp_probability(class_config.cancel_probability)
+    """Return the per-day cancellation hazard used by the simulator."""
+    return daily_cancellation_hazard(class_config.cancel_probability, tau)
 
 
 def behavior_profile_frame(
@@ -34,7 +32,10 @@ def behavior_profile_frame(
                     "tau_booked": tau_booked,
                     "balk_probability": clamp_probability(class_config.balk_probability(tau_booked)),
                     "no_show_probability": clamp_probability(class_config.no_show_probability(tau_booked)),
-                    "effective_cancel_probability": effective_cancellation_probability(class_config, tau_booked),
+                    "eventual_cancel_probability": (
+                        0.0 if tau_booked <= 0 else clamp_probability(class_config.cancel_probability)
+                    ),
+                    "daily_cancel_probability": effective_cancellation_probability(class_config, tau_booked),
                 }
             )
     return pd.DataFrame.from_records(records)
