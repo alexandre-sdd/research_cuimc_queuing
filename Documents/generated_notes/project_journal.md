@@ -59,6 +59,9 @@ The standalone review of the initial formulation note identified three document-
 
 ## Most Recent Completed Task
 
+- Standardized bullet and numbered-list indentation in [first_two_class_simulation_note.tex](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.tex) with global `enumitem` settings so the visual alignment is now consistent across callout boxes, numbered steps, and references.
+- Removed a few local `leftmargin=*` overrides that were creating uneven list offsets in different parts of the note.
+- Recompiled [first_two_class_simulation_note.pdf](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.pdf) after the list-formatting cleanup. The remaining LaTeX warning is still the minor calendar-table layout warning, not a list-formatting issue.
 - Reordered [first_two_class_simulation_note.tex](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.tex) so it now reads as a standalone starting point for the first simulation: model at a glance, core formulation, dynamics, worked example, performance measures, literature positioning, and implementation notes.
 - Added a front-end `Model at a Glance` summary and compressed the old notation critique into a shorter `Notation Choice` subsection.
 - Moved the example material into a single dedicated `Worked Example` section and combined the calendar view, the detailed state `Y_t(r,m)`, the derived state `X_{i,r}^{D}`, and the booking-decision interpretation in one place.

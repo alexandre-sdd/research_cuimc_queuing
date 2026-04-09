@@ -17,6 +17,9 @@
 \definecolor{SoftGold}{HTML}{FFF4E5}
 \definecolor{FrameGold}{HTML}{A55F00}
 
+\setlist[itemize]{leftmargin=1.6em,labelsep=0.55em,itemsep=0.2em,topsep=0.3em,parsep=0pt,partopsep=0pt}
+\setlist[enumerate]{leftmargin=1.8em,labelsep=0.5em,itemsep=0.2em,topsep=0.3em,parsep=0pt,partopsep=0pt}
+
 \newtcolorbox{examplebox}[1][]{
     enhanced,
     breakable,
@@ -84,7 +87,7 @@ The simulation keeps that mechanism, but implements it on an explicit rolling ca
 two patient classes, explicit cancellations, and a pluggable slot-allocation rule.
 
 \begin{keybox}[title={Model at a Glance}]
-\begin{itemize}[nosep,leftmargin=*]
+\begin{itemize}[nosep]
     \item The simulator evolves at slot-sized decision epochs \(t=(D,s)\), where \(D\) is the day and \(s\) is the active slot within that day.
     \item The true state is the rolling calendar \(Y_t(r,m)\), which records the content of slot \(m\) on day offset \(r\).
     \item The derived day-start summary \(X_{i,r}^{D}\) counts how many class-\(i\) patients are scheduled for day \(D+r\) at the start of day \(D\).
@@ -376,7 +379,7 @@ Later versions may generalize this further to a directly delay-sensitive cancell
 
 At each active slot $(D,s)$, the simulator executes the following within-day steps.
 
-\begin{enumerate}[leftmargin=*, itemsep=0.35em]
+\begin{enumerate}[itemsep=0.35em]
     \item Generate arrivals
     \[
     A_i(D,s) \sim \mathrm{Poisson}(\lambda_i), \qquad i \in \{1,2\}.
@@ -756,7 +759,7 @@ of estimation.
 
 \section{References}
 
-\begin{itemize}[leftmargin=*, itemsep=0.25em]
+\begin{itemize}[itemsep=0.25em]
     \item Green, L. V., and S. Savin. 2008. Reducing delays for medical appointments: A queueing approach. \emph{Operations Research} 56(6):1526--1538.
     \item Liu, N. 2015. Optimal choice for appointment scheduling window under patient no-show behavior. \emph{Production and Operations Management} 25(1):128--142.
     \item Liu, N., and S. Ziya. 2014. Panel size and overbooking decisions for appointment-based services under patient no-shows. \emph{Production and Operations Management} 23(12):2209--2223.
