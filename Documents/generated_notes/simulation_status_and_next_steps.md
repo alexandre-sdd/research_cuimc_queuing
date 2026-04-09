@@ -80,19 +80,22 @@ where `\lambda` is the total expected arrival rate per slot and `p` is the class
 The class-specific behavior object remains:
 
 \[
-B_i = \{b_i(\tau), \phi_i(\tau), \xi_i(\tau)\}.
+B_i = \{b_i(\tau), \phi_i(\tau,r), \xi_i(\tau)\}.
 \]
 
-Here `\phi_i(\tau)` is the daily pre-appointment cancellation probability for a class-`i`
-patient who booked with original delay `\tau`. In the current first implementation, this daily
-function is induced by a class-level eventual cancellation parameter `\bar{\phi}_i` through
+Here `\phi_i(\tau,r)` is the daily pre-appointment cancellation probability for a class-`i`
+patient who booked with original delay `\tau` and is currently `r` days away from service.
+In the current implementation, the note-aligned default is the simple direct form
 \[
-\phi_i(\tau)=1-(1-\bar{\phi}_i)^{1/\tau}
+\phi_i(\tau,r)=
+\begin{cases}
+0, & r=0,\\
+\min\{a_i+b_i\tau,\phi_{i,\max}\}\dfrac{r}{\tau}, & 1\le r\le \tau,
+\end{cases}
 \]
-for `\tau \ge 1`, with `\phi_i(0)=0`, so that cancellations are resolved day by day rather than
-drawn in advance while the total pre-appointment cancellation probability remains `\bar{\phi}_i`.
-
-This keeps the first notebook parameterization simple while remaining aligned with the literature reviewed so far.
+so that patients booked far in advance start more cancellation-prone, but their daily
+cancellation probability falls as the appointment approaches. The code still accepts the earlier
+scalar cancellation parameterization for backward compatibility.
 
 ### Current policy set
 

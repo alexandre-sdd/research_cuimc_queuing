@@ -18,6 +18,7 @@ from appointment_simulation import (
     constant_probability,
     daily_cancellation_hazard,
     green_savin_no_show,
+    linear_taper_cancellation,
     make_note_config,
     make_two_class_classes,
     model_setup_frame,
@@ -35,17 +36,23 @@ def make_classes(
     *,
     balk_1: float = 0.0,
     balk_2: float = 0.0,
-    cancel_1: float = 0.0,
-    cancel_2: float = 0.0,
+    cancel_1: float | tuple[float, float, float] = 0.0,
+    cancel_2: float | tuple[float, float, float] = 0.0,
     no_show_1=(0.0, 0.0, 3.0),
     no_show_2=(0.0, 0.0, 3.0),
 ) -> list[PatientClassConfig]:
+    cancel_rule_1 = (
+        linear_taper_cancellation(*cancel_1) if isinstance(cancel_1, tuple) else cancel_1
+    )
+    cancel_rule_2 = (
+        linear_taper_cancellation(*cancel_2) if isinstance(cancel_2, tuple) else cancel_2
+    )
     return [
         PatientClassConfig(
             1,
             lambda_1,
             constant_probability(balk_1),
-            cancel_1,
+            cancel_rule_1,
             exponential_no_show(*no_show_1),
             "class_1",
         ),
@@ -53,7 +60,7 @@ def make_classes(
             2,
             lambda_2,
             constant_probability(balk_2),
-            cancel_2,
+            cancel_rule_2,
             exponential_no_show(*no_show_2),
             "class_2",
         ),
@@ -214,8 +221,8 @@ def test_behavior_profiles_match_simulator_conventions() -> None:
     classes = make_classes(
         0.10,
         0.08,
-        cancel_1=0.25,
-        cancel_2=0.40,
+        cancel_1=(0.01, 0.01, 0.20),
+        cancel_2=(0.02, 0.02, 0.30),
         no_show_1=(0.01, 0.20, 3.0),
         no_show_2=(0.02, 0.30, 4.0),
     )
@@ -225,25 +232,32 @@ def test_behavior_profiles_match_simulator_conventions() -> None:
         "class_id",
         "label",
         "tau_booked",
+        "residual_delay",
         "balk_probability",
         "no_show_probability",
-        "eventual_cancel_probability",
         "daily_cancel_probability",
     }
-    assert len(frame) == 10
-    assert (frame.loc[frame["tau_booked"] == 0, "eventual_cancel_probability"] == 0.0).all()
+    assert len(frame) == 30
+    assert (frame.loc[frame["tau_booked"] == 0, "residual_delay"] == 0).all()
     assert (frame.loc[frame["tau_booked"] == 0, "daily_cancel_probability"] == 0.0).all()
-    assert (
-        frame.loc[(frame["class_id"] == 1) & (frame["tau_booked"] >= 1), "eventual_cancel_probability"] == 0.25
-    ).all()
-    assert (
-        frame.loc[(frame["class_id"] == 2) & (frame["tau_booked"] >= 1), "eventual_cancel_probability"] == 0.40
-    ).all()
-    daily_cancel_tau_4 = frame.loc[
-        (frame["class_id"] == 1) & (frame["tau_booked"] == 4),
+
+    tau_4 = frame.loc[(frame["class_id"] == 1) & (frame["tau_booked"] == 4)].sort_values("residual_delay")
+    assert set(tau_4["residual_delay"]) == {0, 1, 2, 3, 4}
+    assert tau_4.iloc[0]["daily_cancel_probability"] == 0.0
+    assert tau_4.iloc[-1]["daily_cancel_probability"] > tau_4.iloc[1]["daily_cancel_probability"]
+    assert list(tau_4["daily_cancel_probability"]) == sorted(tau_4["daily_cancel_probability"])
+
+    booking_day_cancel_tau_4 = frame.loc[
+        (frame["class_id"] == 1) & (frame["tau_booked"] == 4) & (frame["residual_delay"] == 4),
         "daily_cancel_probability",
     ].iloc[0]
-    assert 0.0 < daily_cancel_tau_4 < 0.25
+    assert 0.0 < booking_day_cancel_tau_4 < 0.20
+
+    repeated_profile = frame.loc[
+        (frame["class_id"] == 2) & (frame["tau_booked"] == 3),
+        ["balk_probability", "no_show_probability"],
+    ].drop_duplicates()
+    assert len(repeated_profile) == 1
 
 
 def test_daily_cancellation_hazard_matches_eventual_phi_over_tau_days() -> None:
@@ -253,6 +267,16 @@ def test_daily_cancellation_hazard_matches_eventual_phi_over_tau_days() -> None:
     assert hazard > 0.0
     assert abs(eventual - 0.36) < 1e-10
     assert daily_cancellation_hazard(0.36, tau=0) == 0.0
+
+
+def test_linear_taper_cancellation_rises_with_tau_and_falls_with_residual_delay() -> None:
+    fn = linear_taper_cancellation(base=0.01, slope=0.02, ceiling=0.20)
+
+    assert fn(0, 0) == 0.0
+    assert fn(4, 0) == 0.0
+    assert fn(6, 6) > fn(3, 3)
+    assert fn(6, 6) > fn(6, 2)
+    assert fn(6, 8) == fn(6, 6)
 
 
 def test_step_balking_changes_probability_at_threshold() -> None:
@@ -337,6 +361,8 @@ def test_note_aligned_presets_build_two_realistic_classes() -> None:
     assert classes[1].label == "Behavioral-health follow-up"
     assert 0.0 <= classes[0].balk_probability(0) <= 1.0
     assert 0.0 <= classes[1].no_show_probability(10) <= 1.0
+    assert 0.0 <= classes[0].cancel_probability(8, 8) <= 1.0
+    assert classes[1].cancel_probability(8, 8) > classes[1].cancel_probability(8, 2)
 
 
 def test_behavior_option_frame_and_model_setup_frame_expose_notebook_inputs() -> None:
@@ -357,5 +383,6 @@ def test_behavior_option_frame_and_model_setup_frame_expose_notebook_inputs() ->
 
     assert list(setup["class_id"]) == [1, 2]
     assert "lambda_i" in setup.columns
+    assert {"phi_base_i", "phi_slope_i", "phi_cap_i"} <= set(setup.columns)
     assert config.horizon_days == 15
     assert config.slots_per_day == 25

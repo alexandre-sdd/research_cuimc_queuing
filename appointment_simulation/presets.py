@@ -4,7 +4,7 @@ from typing import Any
 
 import pandas as pd
 
-from .behaviors import green_savin_no_show, logistic_balking, step_balking
+from .behaviors import green_savin_no_show, linear_taper_cancellation, logistic_balking, step_balking
 from .core import PatientClassConfig, SimulationConfig
 from .sweeps import split_two_class_arrival_rates
 
@@ -59,17 +59,17 @@ NO_SHOW_OPTIONS: dict[str, dict[str, Any]] = {
 
 CANCELLATION_OPTIONS: dict[str, dict[str, Any]] = {
     "moderate": {
-        "description": "Moderate eventual cancellation before the visit.",
+        "description": "Moderate daily cancellation that rises with booked delay and tapers as the visit approaches.",
         "class_specs": {
-            1: {"eventual_cancel_probability": 0.08},
-            2: {"eventual_cancel_probability": 0.12},
+            1: {"base": 0.01, "slope": 0.008, "ceiling": 0.12},
+            2: {"base": 0.02, "slope": 0.012, "ceiling": 0.18},
         },
     },
     "reschedule_heavy": {
-        "description": "Higher eventual cancellation, consistent with more rescheduling pressure.",
+        "description": "Higher cancellation pressure, especially for patients booked far in advance.",
         "class_specs": {
-            1: {"eventual_cancel_probability": 0.14},
-            2: {"eventual_cancel_probability": 0.20},
+            1: {"base": 0.02, "slope": 0.010, "ceiling": 0.16},
+            2: {"base": 0.03, "slope": 0.015, "ceiling": 0.24},
         },
     },
 }
@@ -97,6 +97,15 @@ def _build_no_show_function(option_name: str, class_id: int):
         gamma_0=float(spec["gamma_0"]),
         gamma_max=float(spec["gamma_max"]),
         sensitivity=float(spec["sensitivity"]),
+    )
+
+
+def _build_cancellation_function(option_name: str, class_id: int):
+    spec = CANCELLATION_OPTIONS[option_name]["class_specs"][class_id]
+    return linear_taper_cancellation(
+        base=float(spec["base"]),
+        slope=float(spec["slope"]),
+        ceiling=float(spec["ceiling"]),
     )
 
 
@@ -150,7 +159,10 @@ def behavior_option_frame() -> pd.DataFrame:
                     "class_id": class_id,
                     "label": CLASS_DETAILS[class_id]["label"],
                     "description": option["description"],
-                    "details": f"eventual cancel={spec['eventual_cancel_probability']:.2f}",
+                    "details": (
+                        f"base={spec['base']:.2f}, slope={spec['slope']:.3f}, "
+                        f"ceiling={spec['ceiling']:.2f}"
+                    ),
                 }
             )
 
@@ -184,9 +196,7 @@ def make_two_class_classes(
                 label=CLASS_DETAILS[class_id]["label"],
                 arrival_rate=arrival_rates[class_id],
                 balk_probability=_build_balking_function(balking_option, class_id),
-                cancel_probability=float(
-                    CANCELLATION_OPTIONS[cancellation_option]["class_specs"][class_id]["eventual_cancel_probability"]
-                ),
+                cancel_probability=_build_cancellation_function(cancellation_option, class_id),
                 no_show_probability=_build_no_show_function(no_show_option, class_id),
             )
         )
@@ -207,6 +217,7 @@ def model_setup_frame(
     records: list[dict[str, object]] = []
     for class_config in class_configs:
         class_id = class_config.class_id
+        cancel_spec = CANCELLATION_OPTIONS[cancellation_option]["class_specs"][class_id]
         records.append(
             {
                 "class_id": class_id,
@@ -217,7 +228,9 @@ def model_setup_frame(
                 "b_i option": balking_option,
                 "phi_i option": cancellation_option,
                 "xi_i option": no_show_option,
-                "bar_phi_i": class_config.cancel_probability,
+                "phi_base_i": cancel_spec["base"],
+                "phi_slope_i": cancel_spec["slope"],
+                "phi_cap_i": cancel_spec["ceiling"],
             }
         )
     return pd.DataFrame.from_records(records)

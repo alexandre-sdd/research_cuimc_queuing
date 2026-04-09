@@ -31,7 +31,7 @@ As of 2026-04-08, the project includes:
 - offered delay `\tau` separated from residual-delay state `r`
 - delay-sensitive balking
 - delay-sensitive no-show
-- daily pre-appointment cancellation now formulated in the note as `\phi_i(\tau,r)`
+- daily pre-appointment cancellation implemented as `\phi_i(\tau,r)` in the main note-aligned path
 - FCFS policy
 - latest-available policy
 - reserved-capacity policy
@@ -61,7 +61,8 @@ The standalone review of the initial formulation note identified three document-
 
 - Updated [first_two_class_simulation_note.tex](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.tex) so cancellation is now modeled in the note as a direct daily function \(\phi_i(\tau,r)\), depending both on the original promised delay and on the remaining time until the appointment.
 - Replaced the cancellation figure and its discussion so the note now reflects the intended business intuition: patients booked far in advance start more cancellation-prone, but daily cancellation risk falls as the appointment approaches.
-- Updated the implementation-notes section to state explicitly that the code still uses the older scalar cancellation parameter, so the note and the current implementation are temporarily misaligned on that one component.
+- Aligned the main implementation path with the note by allowing `PatientClassConfig` to take a direct cancellation function \(\phi_i(\tau,r)\) and by evaluating cancellation in the engine from both booked delay `\tau` and residual delay `r`.
+- Kept a backward-compatible path for the older scalar cancellation parameter so existing exploratory notebooks and experiments do not break immediately.
 - Recompiled [first_two_class_simulation_note.pdf](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.pdf) after the cancellation-model rewrite.
 - Added an illustrative plot of the daily cancellation function \(\phi_i(\tau,r)\) to [first_two_class_simulation_note.tex](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.tex), directly after its definition, together with a short business interpretation of what the surface means operationally.
 - Introduced `pgfplots` in the note so simple analytical function plots can be embedded directly in the write-up when needed.

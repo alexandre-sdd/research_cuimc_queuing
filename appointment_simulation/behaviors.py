@@ -5,6 +5,7 @@ from typing import Callable
 
 
 ProbabilityFn = Callable[[int], float]
+CancellationFn = Callable[[int, int], float]
 
 
 def clamp_probability(value: float) -> float:
@@ -18,6 +19,36 @@ def constant_probability(value: float) -> ProbabilityFn:
 
     def fn(_: int) -> float:
         return probability
+
+    return fn
+
+
+def linear_taper_cancellation(
+    base: float,
+    slope: float,
+    ceiling: float,
+) -> CancellationFn:
+    """
+    Return a simple daily cancellation rule ``phi(tau, r)``.
+
+    The returned function increases with the original promised delay ``tau``
+    through ``min(base + slope * tau, ceiling)`` and decreases as the
+    appointment approaches through the taper factor ``r / tau``.
+    """
+    base = clamp_probability(base)
+    ceiling = clamp_probability(ceiling)
+    if slope < 0:
+        raise ValueError("slope must be non-negative")
+    if ceiling < base:
+        raise ValueError("ceiling must be greater than or equal to base")
+
+    def fn(tau: int, residual_delay: int) -> float:
+        if tau <= 0 or residual_delay <= 0:
+            return 0.0
+        if residual_delay > tau:
+            residual_delay = tau
+        level = min(base + slope * tau, ceiling)
+        return clamp_probability(level * (residual_delay / tau))
 
     return fn
 
@@ -39,6 +70,23 @@ def daily_cancellation_hazard(cancel_probability: float, tau: int) -> float:
     if cancel_probability >= 1.0:
         return 1.0
     return clamp_probability(1.0 - (1.0 - cancel_probability) ** (1.0 / float(tau)))
+
+
+def evaluate_cancellation_probability(
+    cancellation_rule: float | CancellationFn,
+    tau: int,
+    residual_delay: int,
+) -> float:
+    """
+    Evaluate either a direct ``phi(tau, r)`` rule or a legacy scalar parameter.
+
+    A callable is interpreted as the direct daily cancellation rule. A numeric
+    value is treated as the older eventual cancellation probability and mapped
+    to a constant daily hazard through ``daily_cancellation_hazard``.
+    """
+    if callable(cancellation_rule):
+        return clamp_probability(cancellation_rule(tau, residual_delay))
+    return daily_cancellation_hazard(float(cancellation_rule), tau)
 
 
 def step_balking(

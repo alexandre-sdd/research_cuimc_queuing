@@ -848,10 +848,10 @@ The current codebase follows this notation directly:
     \item the arrival log records the offered delay as \texttt{tau\_offered},
     \item the cohort and slot logs record the same mathematical quantity $\tau$ under the implementation field name \texttt{tau\_booked},
     \item the day-start state log records the residual day offset as \texttt{residual\_delay},
-    \item the current implementation still stores cancellation through the scalar field
-    \texttt{cancel\_probability}, while this note now recommends moving to a direct daily
-    cancellation function \(\phi_i(\tau,r)\) that depends on both the originally accepted delay
-    and the remaining time until service.
+    \item the cancellation field \texttt{cancel\_probability} now accepts the direct daily
+    function \(\phi_i(\tau,r)\); for backward compatibility it can also still accept the older
+    scalar eventual-cancellation parameter, which the code converts internally into a constant
+    daily hazard.
 \end{itemize}
 
 This is the same split as in the mathematical formulation.
@@ -875,11 +875,10 @@ final operational recommendation when classes differ in delay sensitivity.
 The implementation is also intentionally a little richer than the minimal mathematical state. The
 calendar keeps additional audit information so logs and journals can be produced, but the key
 behavioral content still remains the pair \((i,\tau)\). The main provisional simplification is
-cancellation: mathematically the note now works with a direct daily function \(\phi_i(\tau,r)\),
-while the current code still starts from a scalar cancellation parameter and derives a daily
-hazard internally. So the state and delay notation remain aligned, but the cancellation component
-of the implementation should be updated next if the codebase is to match this revised formulation
-exactly.
+cancellation configuration: the preferred implementation now works directly with
+\(\phi_i(\tau,r)\), but the code still preserves a compatibility path for the earlier scalar
+parameterization. So the state and delay notation are now aligned with the revised formulation,
+while the codebase remains tolerant of older experiments and notebooks.
 
 \section{References}
 

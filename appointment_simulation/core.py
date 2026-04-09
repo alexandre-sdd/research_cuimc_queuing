@@ -6,7 +6,7 @@ from typing import Any, Sequence
 import numpy as np
 import pandas as pd
 
-from .behaviors import ProbabilityFn, clamp_probability, daily_cancellation_hazard
+from .behaviors import CancellationFn, ProbabilityFn, clamp_probability, evaluate_cancellation_probability
 from .policies import AllocationPolicy, FCFSPolicy
 
 
@@ -119,22 +119,24 @@ class PatientClassConfig:
     """
     Behavioral and demand parameters for one patient class.
 
-    In the current prototype, ``cancel_probability`` stores the class-level
-    eventual pre-appointment cancellation parameter ``\\bar{\\phi}_i``. The
-    simulator converts it into the daily cancellation function
-    ``\\phi_i(\\tau)`` through ``daily_cancellation_hazard``.
+    The three behavior fields mirror the note:
+    ``b_i(\\tau)``, ``\\phi_i(\\tau, r)``, and ``\\xi_i(\\tau)``.
+
+    For backward compatibility, ``cancel_probability`` may also be passed as a
+    scalar eventual cancellation probability. In that legacy case, the
+    simulator converts it into a constant daily hazard internally.
     """
     class_id: int
     arrival_rate: float
     balk_probability: ProbabilityFn
-    cancel_probability: float
+    cancel_probability: float | CancellationFn
     no_show_probability: ProbabilityFn
     label: str | None = None
 
     def __post_init__(self) -> None:
         if self.arrival_rate < 0:
             raise ValueError("arrival_rate must be non-negative")
-        if not 0.0 <= self.cancel_probability <= 1.0:
+        if isinstance(self.cancel_probability, (int, float)) and not 0.0 <= float(self.cancel_probability) <= 1.0:
             raise ValueError("cancel_probability must lie in [0, 1]")
 
 
@@ -303,9 +305,10 @@ def simulate(
                 if appointment is None or appointment.appointment_day <= day:
                     continue
                 class_config = class_lookup[appointment.class_id]
-                cancel_hazard = daily_cancellation_hazard(
+                cancel_hazard = evaluate_cancellation_probability(
                     class_config.cancel_probability,
                     appointment.tau_booked,
+                    day_offset,
                 )
                 if rng.random() >= cancel_hazard:
                     continue
