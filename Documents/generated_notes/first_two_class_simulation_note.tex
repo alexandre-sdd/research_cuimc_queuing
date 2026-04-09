@@ -57,7 +57,7 @@
 \tableofcontents
 \bigskip
 
-\section{Purpose and Modeling Choice}
+\section{Purpose and Model at a Glance}
 
 This note defines the first discrete-event appointment simulation used in this project and
 clarifies the notation so it matches the underlying dynamics of the problem.
@@ -83,58 +83,40 @@ All three papers study the same structural mechanism:
 The simulation keeps that mechanism, but implements it on an explicit rolling calendar with
 two patient classes, explicit cancellations, and a pluggable slot-allocation rule.
 
-The note is organized in four blocks. It first motivates the modeling choice, then defines the
-state and dynamics of the simulator, then states the main output measures, and finally explains
-how the formulation relates both to the literature and to the current codebase.
+\begin{keybox}[title={Model at a Glance}]
+\begin{itemize}[nosep,leftmargin=*]
+    \item The simulator evolves at slot-sized decision epochs \(t=(D,s)\), where \(D\) is the day and \(s\) is the active slot within that day.
+    \item The true state is the rolling calendar \(Y_t(r,m)\), which records the content of slot \(m\) on day offset \(r\).
+    \item The derived day-start summary \(X_{i,r}^{D}\) counts how many class-\(i\) patients are scheduled for day \(D+r\) at the start of day \(D\).
+    \item Patient behavior is driven by the delay \(\tau\) seen when the slot is offered, through \(b_i(\tau)\), \(\phi_i(\tau)\), and \(\xi_i(\tau)\).
+    \item Demand is parameterized by total arrival rate \(\lambda\) and class-1 demand share \(p\), with \(\lambda_1=p\lambda\) and \(\lambda_2=(1-p)\lambda\).
+\end{itemize}
+\end{keybox}
 
-\subsection{Why the Naive Formulation is Not Sufficient}
+The note proceeds in six steps. It first states the modeling choice and notation, then defines the
+core formulation, then describes the baseline dynamics, then walks through one integrated FCFS
+example, then defines the performance measures, and finally positions the simulator relative to the
+literature and the current codebase.
 
-An initial formulation might write
+\subsection{Notation Choice}
+
+A naive notation might write
 \[
 X_{i,\tau}^{D} = \text{number of class-$i$ patients booked for day } D+\tau
 \]
-and then also use $\tau$ inside $b_i(\tau)$ and $\xi_i(\tau)$.
-That notation is not the best formulation for this problem.
-
-\subsubsection{Problem 1: It Overloads the Delay Variable}
-
-There are two different delays in the system:
+and then also use the same symbol \(\tau\) inside \(b_i(\tau)\) and \(\xi_i(\tau)\).
+This note avoids that formulation for three reasons:
 \begin{enumerate}[nosep]
-    \item the \emph{remaining delay} from the current day to the appointment,
-    \item the \emph{original delay seen at booking time}.
+    \item it overloads the delay variable, because the simulator needs both a \emph{residual delay} in the state and a \emph{booking-time delay} in the behavior functions;
+    \item it treats the aggregate count \(X_{i,r}^{D}\) as if it were the full state, even though the simulator must track slot-level holes and positions explicitly;
+    \item it obscures the link to the literature, where attendance depends on the congestion or delay seen when the appointment is accepted.
 \end{enumerate}
 
-These play different roles.
-The remaining delay is a state variable.
-The original delay at booking is the natural argument of the behavioral functions.
+The resulting modeling choice is simple: use \(r\) for residual delay in the state, use \(\tau\) for
+the booking-time delay faced by the patient, and treat the slot-level calendar \(Y_t(r,m)\) as the
+true state of the simulator.
 
-If the same symbol $\tau$ is used for both, then the model becomes ambiguous.
-In particular, it can incorrectly suggest that no-show probability should be recomputed from
-remaining delay as the appointment approaches.
-That is not the intended behavioral mechanism here.
-
-\subsubsection{Problem 2: The Aggregate Day-Level Count is Not the True State}
-
-The vector $\{X_{i,\tau}^{D}\}$ is a useful summary, but it is not the full simulator state once
-we include:
-\begin{itemize}[nosep]
-    \item slot-level capacity,
-    \item day-by-day cancellations that reopen specific future slots,
-    \item alternative booking policies that may choose different open slots within the same day.
-\end{itemize}
-
-For those features, the actual state must retain the slot-level calendar.
-
-\subsubsection{Problem 3: It Hides the Link to the Literature}
-
-In the source papers, attendance depends on the backlog or delay the patient sees when the
-appointment is accepted.
-The relevant quantity is therefore the \emph{booking-time delay}, not the residual delay just
-before service.
-
-The simulator should preserve that same logic in explicit-calendar form.
-
-\section{Model Formulation}
+\section{Core Formulation}
 
 \subsection{Time Index}
 
@@ -282,108 +264,6 @@ The remaining class characteristics are recovered from $C_i$ when the simulator 
     \item $\xi_i(\tau)$ governs no-show at appointment time.
 \end{itemize}
 
-\begin{examplebox}[title={Visualizing the Rolling $H \times S$ Calendar}]
-Schematically, the rolling calendar has the following structure:
-\medskip
-\noindent\makebox[\linewidth][c]{%
-\renewcommand{\arraystretch}{1.35}
-\setlength{\tabcolsep}{7pt}
-\resizebox{0.95\linewidth}{!}{
-\begin{tabular}{|>{\raggedright\arraybackslash}m{2.3cm}|>{\centering\arraybackslash}m{2.0cm}|>{\centering\arraybackslash}m{2.0cm}|>{\centering\arraybackslash}m{1.5cm}|>{\centering\arraybackslash}m{2.4cm}|}
-\hline
-\rowcolor{gray!15}
-\textbf{Slot in day} & \shortstack{\textbf{day $D$}\\($r=0$)} & \shortstack{\textbf{day $D+1$}\\($r=1$)} & \textbf{$\cdots$} & \shortstack{\textbf{day $D+H-1$}\\($r=H-1$)} \\
-\hline
-\cellcolor{gray!10}\shortstack[l]{\textbf{slot 0}\\($m=0$)} & $Y_t(0,0)$ & $Y_t(1,0)$ & $\cdots$ & $Y_t(H-1,0)$ \\
-\hline
-\cellcolor{gray!10}\shortstack[l]{\textbf{slot 1}\\($m=1$)} & $Y_t(0,1)$ & $Y_t(1,1)$ & $\cdots$ & $Y_t(H-1,1)$ \\
-\hline
-\cellcolor{gray!8}\textbf{later slots} & $\vdots$ & $\vdots$ & $\ddots$ & $\vdots$ \\
-\hline
-\cellcolor{gray!10}\shortstack[l]{\textbf{slot $S-1$}\\($m=S-1$)} & $Y_t(0,S-1)$ & $Y_t(1,S-1)$ & $\cdots$ & $Y_t(H-1,S-1)$ \\
-\hline
-\end{tabular}
-}%
-}
-\medskip
-
-So each column is a day in the rolling horizon, and each row is a slot inside that day.
-The state variable $Y_t(r,m)$ is just the content of one cell of this table.
-\end{examplebox}
-
-\begin{examplebox}[title={Example: A Realistic FCFS Appointment Book}]
-To make the notation concrete, suppose class 1 is an MRI-like diagnostic request and class 2 is a
-behavioral-health follow-up request. Suppose also that each day has four appointment times:
-08:00, 10:00, 13:00, and 15:00.
-
-A realistic FCFS-consistent miniature appointment book with $H=3$ and $S=4$ looks like this:
-\begin{center}
-\renewcommand{\arraystretch}{1.4}
-\setlength{\tabcolsep}{6pt}
-\resizebox{\textwidth}{!}{
-\begin{tabular}{|>{\raggedright\arraybackslash}m{2.3cm}|>{\centering\arraybackslash}m{2.2cm}|>{\centering\arraybackslash}m{2.2cm}|>{\centering\arraybackslash}m{2.2cm}|}
-\hline
-\rowcolor{gray!15}
-\textbf{Slot in day} & \textbf{day $D$} & \textbf{day $D+1$} & \textbf{day $D+2$} \\
-\hline
-\cellcolor{gray!10}\shortstack[l]{\textbf{08:00}\\($m=0$)} &
-\cellcolor{blue!12}$(1,0)$ &
-\cellcolor{orange!18}$(2,1)$ &
-\cellcolor{orange!18}$(2,2)$ \\
-\hline
-\cellcolor{gray!10}\shortstack[l]{\textbf{10:00}\\($m=1$)} &
-\cellcolor{orange!18}$(2,0)$ &
-\cellcolor{blue!12}$(1,1)$ &
-\cellcolor{green!12}\textsf{open} \\
-\hline
-\cellcolor{gray!10}\shortstack[l]{\textbf{13:00}\\($m=2$)} &
-\cellcolor{blue!12}$(1,0)$ &
-\cellcolor{orange!18}$(2,1)$ &
-\cellcolor{green!12}\textsf{open} \\
-\hline
-\cellcolor{gray!10}\shortstack[l]{\textbf{15:00}\\($m=3$)} &
-\cellcolor{green!12}\textsf{open} &
-\cellcolor{blue!12}$(1,1)$ &
-\cellcolor{green!12}\textsf{open} \\
-\hline
-\end{tabular}
-}
-\end{center}
-
-This example is read column by column.
-The first column is today's remaining schedule, the second column is tomorrow's schedule, and the
-third column is the schedule for the day after tomorrow.
-Under FCFS, this pattern is meant to read from left to right:
-\begin{itemize}[nosep]
-    \item today and tomorrow are filled first,
-    \item then overflow starts to appear on day $D+2$,
-    \item the only exception is today's 15:00 slot, which is open because a previously booked patient canceled before the day started.
-\end{itemize}
-
-So the open 15:00 slot is a cancellation hole, not a violation of FCFS.
-Without that cancellation, the displayed book would be front-loaded exactly as FCFS suggests.
-
-For instance, the entry in day-column $r=2$ and slot-row $m=0$ is $(2,2)$, meaning that the
-08:00 slot of day $D+2$ is occupied by a class-2 behavioral-health patient who accepted a
-two-day delay because earlier slots had already been filled when that patient booked.
-Because the patient belongs to class $2$, the simulator knows to use the class-2 behavior object
-$C_2=\{\lambda_2,b_2(\tau),\phi_2(\tau),\xi_2(\tau)\}$.
-That means:
-\begin{itemize}[nosep]
-    \item future class-2 arrivals are generated with rate $\lambda_2$,
-    \item the patient's daily pre-appointment cancellation behavior is governed by $\phi_2(2)$,
-    \item if the patient reaches service, the no-show probability is $\xi_2(2)$ because the original booked delay is $\tau=2$.
-\end{itemize}
-
-This is the minimal state representation that supports:
-\begin{itemize}[nosep]
-    \item explicit holes created by daily cancellation,
-    \item slot-level FCFS or non-FCFS allocation,
-    \item class-specific booked-delay tracking,
-    \item later policy experiments that depend on slot position.
-\end{itemize}
-\end{examplebox}
-
 \subsubsection{Derived Day-Start Summary}
 
 Although the slot-level calendar is the true state, it is still useful to retain an aggregate
@@ -413,111 +293,6 @@ X_{i,r}^{D}
 
 This is the correct interpretation of the state-count variable.
 The index $r$ is a \emph{residual delay}, not a booking-time delay.
-
-\subsection{Illustrative FCFS Calendar Example}
-
-\begin{examplebox}[title={Worked Example: From $Y_t(r,m)$ to $X_{i,r}^{D}$}]
-It is useful to see one concrete calendar snapshot and translate it directly into the state and
-equations.
-Suppose:
-\[
-D=0, \qquad s=0, \qquad H=3, \qquad S=4.
-\]
-So we are at the start of the current operating day, just before the 08:00 slot, and the rolling
-calendar covers today, tomorrow, and the day after tomorrow.
-
-Assume the slot-level state is:
-\[
-\begin{array}{c|cccc}
-& \text{08:00} & \text{10:00} & \text{13:00} & \text{15:00} \\
-\hline
-r=0\text{ (today)} & (1,0) & (2,0) & (1,0) & 0 \\
-r=1\text{ (tomorrow)} & (2,1) & (1,1) & (2,1) & (1,1) \\
-r=2\text{ (day after)} & (2,2) & 0 & 0 & 0
-\end{array}
-\]
-
-Interpretation:
-\begin{itemize}[nosep]
-    \item row $r=0$ corresponds to today's remaining slots,
-    \item row $r=1$ corresponds to tomorrow,
-    \item row $r=2$ corresponds to the day after tomorrow,
-    \item entry $0$ means the slot is open,
-    \item entry $(i,\tau)$ means the slot is occupied by a class-$i$ patient who accepted an offered delay $\tau$.
-\end{itemize}
-
-For example:
-\begin{itemize}[nosep]
-    \item $Y_{(0,0)}(0,0)=(1,0)$ means that today's 08:00 slot is booked by a class-1 MRI patient who accepted a same-day offer,
-    \item $Y_{(0,0)}(1,3)=(1,1)$ means that tomorrow's 15:00 slot is booked by a class-1 MRI patient who accepted a one-day delay,
-    \item $Y_{(0,0)}(2,0)=(2,2)$ means that the 08:00 slot two days from now is booked by a class-2 behavioral-health patient who accepted a two-day delay.
-\end{itemize}
-
-For the second patient, the state stores only $(2,2)$.
-That is enough because class index $2$ points to
-\[
-C_2=\{\lambda_2,b_2(\tau),\phi_2(\tau),\xi_2(\tau)\}.
-\]
-So while the patient waits, the simulator uses the class-2 cancellation function $\phi_2(\tau)$ to
-apply the daily cancellation probability $\phi_2(2)$, and if the patient reaches service it uses $\xi_2(2)$ for
-attendance.
-
-From this calendar, the derived day-start counts are:
-\[
-X_{1,0}^{0}=2,\quad X_{2,0}^{0}=1,
-\]
-\[
-X_{1,1}^{0}=2,\quad X_{2,1}^{0}=2,
-\]
-\[
-X_{1,2}^{0}=0,\quad X_{2,2}^{0}=1.
-\]
-
-So the vector $X_{i,r}^{0}$ is just a class-by-class count of the occupied entries in each row.
-It does \emph{not} remember which slot inside the day is occupied, nor does it retain the
-full slot-level identity of individual patients.
-That is why $X_{i,r}^{D}$ is a useful summary, but not the full state needed by the simulator.
-
-The distinction between $r$ and $\tau$ is also visible in this example.
-Consider the patient stored as
-\[
-Y_{(0,0)}(2,0)=(2,2).
-\]
-On day $0$, that patient contributes to $X_{2,2}^{0}$.
-If the patient remains scheduled, then at the start of day $1$ the same patient will contribute
-to $X_{2,1}^{1}$, because the \emph{residual delay} has fallen from $2$ to $1$.
-However, the patient's booking-time delay remains $\tau=2$, and that is the quantity that should
-continue to drive the behavioral functions $b_2(\tau)$, $\phi_2(\tau)$, and $\xi_2(\tau)$.
-\end{examplebox}
-
-\subsubsection{From Calendar Story to Equations}
-
-The realistic booking story above transfers directly into the mathematical model.
-Suppose a new patient arrives just before today's 08:00 slot.
-In the displayed FCFS calendar, the earliest open slot is today's 15:00 slot.
-So FCFS offers that slot first.
-If the arrival belongs to class 1, then:
-\begin{itemize}[nosep]
-    \item the offered delay is $\tau=0$ because the offered day is still day $D$,
-    \item the patient books with probability $1-b_1(0)$,
-    \item if the patient accepts, the new slot content becomes
-    \[
-    Y_{(0,0)}(0,3)=(1,0),
-    \]
-    \item because $\tau=0$, there is no remaining pre-appointment day on which cancellation can occur,
-    \item if the patient reaches the appointment, attendance occurs with probability $1-\xi_1(0)$.
-\end{itemize}
-
-The booked patient already visible at
-\[
-Y_{(0,0)}(2,0)=(2,2)
-\]
-illustrates the complementary FCFS logic: this patient accepted a day-$D+2$ slot earlier, at a
-time when all earlier slots were already full. So the same calendar can be read in two useful ways:
-\begin{itemize}[nosep]
-    \item as a current FCFS decision problem: today's cancellation hole is offered first,
-    \item as a history of past FCFS bookings: overflow patients appear only after earlier slots were exhausted.
-\end{itemize}
 
 \subsubsection{Booking-Time Delay}
 
@@ -595,9 +370,9 @@ so that a patient who booked with delay $\tau$ and faces one cancellation trial 
 pre-appointment day still has total cancellation probability $\bar{\phi}_i$ before the appointment.
 Later versions may generalize this further to a directly delay-sensitive cancellation object.
 
-\subsection{Event Dynamics}
+\section{Dynamics and Baseline Policy}
 
-\subsubsection{Slot-Level Event Order}
+\subsection{Slot-Level Event Order}
 
 At each active slot $(D,s)$, the simulator executes the following within-day steps.
 
@@ -634,24 +409,166 @@ This timing is operationally natural:
     \item the total cancellation probability across those daily trials remains $\bar{\phi}_i$.
 \end{itemize}
 
-\subsubsection{FCFS Baseline Policy}
+\subsection{FCFS Baseline Policy}
 
 In the baseline version, the allocation rule is:
 \begin{quote}
 choose the earliest open slot strictly after the active slot.
 \end{quote}
 
-That rule is first-come first-served in calendar order, but the simulator is intentionally
-written so the slot-selection rule can later be replaced without changing the event loop.
-The current codebase now includes two additional initial-model examples:
+That rule is first-come first-served in calendar order. In this note it is the only policy under
+study, because the goal is to isolate the basic delay-feedback mechanism before considering richer
+allocation logic.
+
+\section{Worked Example}
+
+The abstract notation is easier to read once it is tied to a single concrete FCFS calendar. This
+section combines the visual calendar, the detailed state \(Y_t(r,m)\), the derived count
+\(X_{i,r}^{D}\), and the implied booking decision in one place.
+
+\begin{examplebox}[title={Visualizing the Rolling $H \times S$ Calendar}]
+Before filling in a specific scenario, it helps to see the shape of the state. The rolling
+calendar has the following generic structure:
+\medskip
+\noindent\makebox[\linewidth][c]{%
+\renewcommand{\arraystretch}{1.35}
+\setlength{\tabcolsep}{7pt}
+\resizebox{0.95\linewidth}{!}{
+\begin{tabular}{|>{\raggedright\arraybackslash}m{2.3cm}|>{\centering\arraybackslash}m{2.0cm}|>{\centering\arraybackslash}m{2.0cm}|>{\centering\arraybackslash}m{1.5cm}|>{\centering\arraybackslash}m{2.4cm}|}
+\hline
+\rowcolor{gray!15}
+\textbf{Slot in day} & \shortstack{\textbf{day $D$}\\($r=0$)} & \shortstack{\textbf{day $D+1$}\\($r=1$)} & \textbf{$\cdots$} & \shortstack{\textbf{day $D+H-1$}\\($r=H-1$)} \\
+\hline
+\cellcolor{gray!10}\shortstack[l]{\textbf{slot 0}\\($m=0$)} & $Y_t(0,0)$ & $Y_t(1,0)$ & $\cdots$ & $Y_t(H-1,0)$ \\
+\hline
+\cellcolor{gray!10}\shortstack[l]{\textbf{slot 1}\\($m=1$)} & $Y_t(0,1)$ & $Y_t(1,1)$ & $\cdots$ & $Y_t(H-1,1)$ \\
+\hline
+\cellcolor{gray!8}\textbf{later slots} & $\vdots$ & $\vdots$ & $\ddots$ & $\vdots$ \\
+\hline
+\cellcolor{gray!10}\shortstack[l]{\textbf{slot $S-1$}\\($m=S-1$)} & $Y_t(0,S-1)$ & $Y_t(1,S-1)$ & $\cdots$ & $Y_t(H-1,S-1)$ \\
+\hline
+\end{tabular}
+}%
+}
+\medskip
+
+Each column is a day in the rolling horizon, and each row is a slot inside that day. The state
+variable \(Y_t(r,m)\) is simply the content of one cell of this table.
+\end{examplebox}
+
+\begin{examplebox}[title={Worked Example: FCFS Calendar, Derived State, and Booking Decision}]
+Suppose class 1 is an MRI-like diagnostic request and class 2 is a behavioral-health follow-up
+request. Suppose also that each day has four appointment times: 08:00, 10:00, 13:00, and 15:00.
+Take
+\[
+D=0, \qquad s=0, \qquad H=3, \qquad S=4,
+\]
+so we are at the start of the current operating day, just before the 08:00 slot, and the rolling
+calendar covers today, tomorrow, and the day after tomorrow.
+
+A realistic FCFS-consistent miniature appointment book looks like this:
+\begin{center}
+\renewcommand{\arraystretch}{1.4}
+\setlength{\tabcolsep}{6pt}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{|>{\raggedright\arraybackslash}m{2.3cm}|>{\centering\arraybackslash}m{2.2cm}|>{\centering\arraybackslash}m{2.2cm}|>{\centering\arraybackslash}m{2.2cm}|}
+\hline
+\rowcolor{gray!15}
+\textbf{Slot in day} & \textbf{day $D$} & \textbf{day $D+1$} & \textbf{day $D+2$} \\
+\hline
+\cellcolor{gray!10}\shortstack[l]{\textbf{08:00}\\($m=0$)} &
+\cellcolor{blue!12}$(1,0)$ &
+\cellcolor{orange!18}$(2,1)$ &
+\cellcolor{orange!18}$(2,2)$ \\
+\hline
+\cellcolor{gray!10}\shortstack[l]{\textbf{10:00}\\($m=1$)} &
+\cellcolor{orange!18}$(2,0)$ &
+\cellcolor{blue!12}$(1,1)$ &
+\cellcolor{green!12}\textsf{open} \\
+\hline
+\cellcolor{gray!10}\shortstack[l]{\textbf{13:00}\\($m=2$)} &
+\cellcolor{blue!12}$(1,0)$ &
+\cellcolor{orange!18}$(2,1)$ &
+\cellcolor{green!12}\textsf{open} \\
+\hline
+\cellcolor{gray!10}\shortstack[l]{\textbf{15:00}\\($m=3$)} &
+\cellcolor{green!12}\textsf{open} &
+\cellcolor{blue!12}$(1,1)$ &
+\cellcolor{green!12}\textsf{open} \\
+\hline
+\end{tabular}
+}
+\end{center}
+
+This example is read column by column. Today and tomorrow are filled first, overflow appears on
+day \(D+2\), and the open 15:00 slot on day \(D\) is a cancellation hole rather than a violation
+of FCFS.
+
+The same calendar can be written directly as a state snapshot:
+\[
+\begin{array}{c|cccc}
+& \text{08:00} & \text{10:00} & \text{13:00} & \text{15:00} \\
+\hline
+r=0\text{ (today)} & (1,0) & (2,0) & (1,0) & 0 \\
+r=1\text{ (tomorrow)} & (2,1) & (1,1) & (2,1) & (1,1) \\
+r=2\text{ (day after)} & (2,2) & 0 & 0 & 0
+\end{array}
+\]
+
+So, for example:
 \begin{itemize}[nosep]
-    \item a strict reserved-capacity policy that protects a specified fraction or count of daily slots for each class,
-    \item a class-specific booking-window policy that restricts class $i$ to delays no larger than $k_i$.
+    \item \(Y_{(0,0)}(0,0)=(1,0)\) means that today's 08:00 slot is booked by a class-1 MRI patient who accepted a same-day offer;
+    \item \(Y_{(0,0)}(1,3)=(1,1)\) means that tomorrow's 15:00 slot is booked by a class-1 MRI patient who accepted a one-day delay;
+    \item \(Y_{(0,0)}(2,0)=(2,2)\) means that the 08:00 slot two days from now is booked by a class-2 behavioral-health patient who accepted a two-day delay.
 \end{itemize}
 
-\section{Performance Measures and Interpretation}
+Because the last patient belongs to class \(2\), the simulator links that slot to
+\[
+C_2=\{\lambda_2,b_2(\tau),\phi_2(\tau),\xi_2(\tau)\},
+\]
+so future class-2 arrivals are generated with rate \(\lambda_2\), daily cancellation while the
+patient waits is governed by \(\phi_2(2)\), and eventual no-show is governed by \(\xi_2(2)\).
 
-\subsection{Performance Measures}
+From the same calendar, the derived day-start counts are:
+\[
+X_{1,0}^{0}=2,\quad X_{2,0}^{0}=1,
+\qquad
+X_{1,1}^{0}=2,\quad X_{2,1}^{0}=2,
+\qquad
+X_{1,2}^{0}=0,\quad X_{2,2}^{0}=1.
+\]
+
+So \(X_{i,r}^{0}\) is just a class-by-class count of occupied entries in row \(r\). It does
+\emph{not} remember which slot inside the day is occupied, which is why \(X_{i,r}^{D}\) is a
+useful summary but not the full simulator state.
+
+The same snapshot also shows why \(r\) and \(\tau\) must be separated. The patient stored as
+\[
+Y_{(0,0)}(2,0)=(2,2)
+\]
+contributes to \(X_{2,2}^{0}\) on day \(0\), then to \(X_{2,1}^{1}\) on day \(1\) if still
+scheduled. The residual delay changes from \(r=2\) to \(r=1\), but the booking-time delay remains
+\(\tau=2\), so the same behavioral functions \(b_2(\tau)\), \(\phi_2(\tau)\), and \(\xi_2(\tau)\)
+continue to apply.
+
+Finally, the calendar transfers directly into the booking equations. Suppose a new patient arrives
+just before today's 08:00 slot. Under FCFS, the earliest open slot is today's 15:00 slot. If the
+arrival belongs to class 1, then:
+\begin{itemize}[nosep]
+    \item the offered delay is \(\tau=0\);
+    \item the patient books with probability \(1-b_1(0)\);
+    \item if the patient accepts, the new slot content becomes \(Y_{(0,0)}(0,3)=(1,0)\);
+    \item because \(\tau=0\), there is no remaining pre-appointment day on which cancellation can occur;
+    \item if the patient reaches the appointment, attendance occurs with probability \(1-\xi_1(0)\).
+\end{itemize}
+
+So the same worked example can be read in three ways: as an appointment book, as a state
+realization \((Y,X)\), and as the input to the booking and attendance equations.
+\end{examplebox}
+
+\section{Performance Measures}
+
+\subsection{Arrival-Cohort Measures}
 
 For patients who arrive during the measured window, define:
 \begin{align*}
@@ -699,7 +616,11 @@ Two utilization measures are reported:
 The first measures scheduled load.
 The second measures realized attended load.
 
-\section{Relation to the Literature and the Code}
+\noindent Operationally, mean booking delay summarizes access, \(\rho^{\mathrm{booked}}\)
+summarizes scheduled load, and \(\rho^{\mathrm{attended}}\) summarizes realized clinical load after
+no-shows.
+
+\section{Relation to the Literature}
 
 \subsection{Literature Mapping}
 
@@ -793,26 +714,7 @@ This simulator & explicit rolling calendar $Y_t(r,m)$ plus derived $X_{i,r}^D$ &
 \normalsize
 \end{center}
 
-\subsection{Why This Formulation Fits the Problem}
-
-This formulation is the right starting point for the present project for four connected reasons:
-\begin{enumerate}[nosep]
-    \item It matches the behavioral mechanism. Patients react to the delay they are offered when
-    booking, so the quantity that should drive later cancellation and no-show behavior is the
-    accepted delay $\tau$.
-    \item It preserves the literature's logic while using an explicit calendar. The source papers
-    compress the system into queue length or backlog for tractability; the simulator can keep the
-    richer slot-level calendar and still recover a literature-friendly summary through
-    $X_{i,r}^{D}$.
-    \item It remains Markov for the planned extensions. Once cancellations create holes and
-    policies can choose among multiple open slots, a pure day-level count is no longer enough.
-    The calendar state $Y_t(r,m)$ is the right object to carry forward if the project later adds
-    priority rules, reserved capacity, booking-window limits, overbooking, or dynamic acceptance
-    decisions.
-    \item It cleanly separates state and behavior. Residual delay $r$ tells us where the system
-    is now, while booking-time delay $\tau$ tells us what the patient accepted and therefore what
-    behavior functions should apply.
-\end{enumerate}
+\section{Implementation Notes and Current Limits}
 
 \subsection{Implementation Mapping}
 
@@ -833,41 +735,24 @@ attendance, and utilization measures, and reports the access metric
 \]
 for a configurable target such as $T_{\mathrm{access}} = 30$ days.
 
-\subsection{Strategy and Current Limits}
+\subsection{Current Scope and Limits}
 
-\paragraph{Why FCFS is the right first strategy.}
-
-FCFS is the right baseline because it is transparent, easy to explain to operational partners, and
-reveals the core mechanism of the project with minimal confounding:
+FCFS is the deliberate first baseline because it makes the delay-feedback mechanism easy to see:
 \[
 \text{more demand} \longrightarrow \text{longer offered delay } \tau
 \longrightarrow \text{more balking / cancellation / no-show}.
 \]
+That makes it a good diagnostic starting point, even though it should not be interpreted as the
+final operational recommendation when classes differ in delay sensitivity.
 
-That makes FCFS an excellent diagnostic benchmark.
-However, it should not be treated as the final strategic recommendation, because it ignores class
-heterogeneity.
-If classes differ materially in access sensitivity or attendance sensitivity, FCFS may be simple
-but not efficient.
-
-\paragraph{Why the code structure is sound.}
-
-The implementation is well aligned with the mathematical formulation for three reasons:
-\begin{itemize}[nosep]
-    \item the policy rule is isolated behind an allocation interface, so FCFS can later be replaced without rewriting the event loop,
-    \item the implementation state is richer than the mathematical state, but only for auditing and measurement; the minimal behavioral content is still the pair $(i,\tau)$,
-    \item the simulator exposes arrival logs, cohort logs, slot logs, state logs, and daily journals, so every key equation in the note can be checked against an observable output table.
-\end{itemize}
-
-\paragraph{Current strategic and coding limits.}
-
-The main provisional simplification is cancellation.
-Mathematically, the note now works with the daily function $\phi_i(\tau)$.
-In code, the current class configuration still starts from a scalar parameter $\bar{\phi}_i$ and
-derives $\phi_i(\tau)$ internally.
-That is acceptable for the first prototype because it keeps calibration simple, but if future data
-support direct estimation of delay-specific cancellation behavior, the natural next step is to let
-the code accept a cancellation function directly, just as it already does for balking and no-show.
+The implementation is also intentionally a little richer than the minimal mathematical state. The
+calendar keeps additional audit information so logs and journals can be produced, but the key
+behavioral content still remains the pair \((i,\tau)\). The main provisional simplification is
+cancellation: mathematically the note works with \(\phi_i(\tau)\), while in code the current class
+configuration still starts from a scalar parameter \(\bar{\phi}_i\) and derives the daily
+cancellation function internally. That is acceptable for the first prototype, but the natural next
+step is to let the code accept a cancellation function directly if future data support that level
+of estimation.
 
 \section{References}
 

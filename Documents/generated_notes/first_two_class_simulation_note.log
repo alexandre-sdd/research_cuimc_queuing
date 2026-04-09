@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.3.8)  8 APR 2026 23:11
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.3.8)  8 APR 2026 23:15
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -887,27 +887,33 @@ File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 
 [1
 
-{/usr/local/texlive/2025/texmf-var/fonts/map/pdftex/updmap/pdftex.map}{/usr/loc
-al/texlive/2025/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc}]
+{/usr/local/texlive/2025/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
 
-[2]
+[2{/usr/local/texlive/2025/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc
+}]
 
 [3]
-Overfull \hbox (6.92758pt too wide) in paragraph at lines 307--307
- []|[]| 
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 286--309
-[]\OT1/cmr/m/n/10.95 Schematically, the rolling cal-en-dar has the fol-low-ing 
-struc-ture:
- []
-
-
 
 [4]
 
 [5]
+Overfull \hbox (6.92758pt too wide) in paragraph at lines 452--452
+ []|[]| 
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 430--454
+[]\OT1/cmr/m/n/10.95 Before fill-ing in a spe-cific sce-nario, it helps to see 
+the shape of
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 430--454
+\OT1/cmr/m/n/10.95 the state. The rolling cal-en-dar has the fol-low-ing generi
+c struc-ture:
+ []
+
+
 
 [6]
 
@@ -921,25 +927,23 @@ struc-ture:
 
 [11]
 
-[12]
-
-[13] (Documents/generated_notes/first_two_class_simulation_note.aux)
+[12] (Documents/generated_notes/first_two_class_simulation_note.aux)
  ***********
 LaTeX2e <2024-11-01> patch level 2
 L3 programming layer <2025-01-18>
  ***********
 Package rerunfilecheck Info: File `first_two_class_simulation_note.out' has not
  changed.
-(rerunfilecheck)             Checksum: D17E60F5C2F5BC16B00287A16E1EA240;3009.
+(rerunfilecheck)             Checksum: B05A9A2AD207732F2876D99D4F4148C1;2963.
  ) 
 Here is how much of TeX's memory you used:
- 28042 strings out of 473190
- 564070 string characters out of 5715801
- 980524 words of memory out of 5000000
- 50780 multiletter control sequences out of 15000+600000
+ 28032 strings out of 473190
+ 563913 string characters out of 5715801
+ 991530 words of memory out of 5000000
+ 50781 multiletter control sequences out of 15000+600000
  570956 words of font info for 82 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 116i,17n,121p,594b,1057s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 116i,17n,121p,594b,1049s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb
 ></usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb>
 </usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb><
@@ -958,10 +962,10 @@ ve/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/texlive
 025/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb></usr/local/texli
 ve/2025/texmf-dist/fonts/type1/public/cm-super/sfrm1095.pfb>
 Output written on Documents/generated_notes/first_two_class_simulation_note.pdf
- (13 pages, 255859 bytes).
+ (12 pages, 251229 bytes).
 PDF statistics:
- 314 PDF objects out of 1000 (max. 8388607)
- 238 compressed objects within 3 object streams
- 60 named destinations out of 1000 (max. 500000)
- 285 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 306 PDF objects out of 1000 (max. 8388607)
+ 231 compressed objects within 3 object streams
+ 49 named destinations out of 1000 (max. 500000)
+ 301 words of extra memory for PDF output out of 10000 (max. 10000000)
 

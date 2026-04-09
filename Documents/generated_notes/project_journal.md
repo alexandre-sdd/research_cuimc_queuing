@@ -59,12 +59,12 @@ The standalone review of the initial formulation note identified three document-
 
 ## Most Recent Completed Task
 
-- Added a table of contents to [first_two_class_simulation_note.tex](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.tex) so the document is easier to navigate as a standalone note.
-- Added visually distinct boxes for the central feedback loop, the main calendar examples, and the key modeling distinction between residual delay `r` and booking-time delay `\tau`.
-- Refined the presentation so the examples read more clearly as worked examples rather than as ordinary body text.
-- Fixed the `tcolorbox` definitions so boxed headings render their intended titles rather than the literal word `title`.
-- Recompiled [first_two_class_simulation_note.pdf](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.pdf) after the visual pass and formatting changes.
-- Identified one remaining minor LaTeX layout warning in the schematic calendar table; it is small enough for now but may be worth cleaning up later if the note is polished further for external circulation.
+- Reordered [first_two_class_simulation_note.tex](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.tex) so it now reads as a standalone starting point for the first simulation: model at a glance, core formulation, dynamics, worked example, performance measures, literature positioning, and implementation notes.
+- Added a front-end `Model at a Glance` summary and compressed the old notation critique into a shorter `Notation Choice` subsection.
+- Moved the example material into a single dedicated `Worked Example` section and combined the calendar view, the detailed state `Y_t(r,m)`, the derived state `X_{i,r}^{D}`, and the booking-decision interpretation in one place.
+- Split the former mixed literature/code section into [Relation to the Literature](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.tex) and [Implementation Notes and Current Limits](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.tex).
+- Renamed the measures block so it now reads simply as `Performance Measures`, with a short operational interpretation paragraph instead of a broader title that the section did not fully support.
+- Recompiled [first_two_class_simulation_note.pdf](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.pdf) after the structural reordering. A small LaTeX layout warning remains in the generic schematic calendar example, but the document compiles correctly.
 
 ## Updated Task Assessment
 
