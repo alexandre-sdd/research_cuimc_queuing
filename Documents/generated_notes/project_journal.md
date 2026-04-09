@@ -59,6 +59,9 @@ The standalone review of the initial formulation note identified three document-
 
 ## Most Recent Completed Task
 
+- Cleaned up the cancellation illustration in [first_two_class_simulation_note.tex](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.tex) so the two class-specific formulas no longer overflow the example box.
+- Reworked the cancellation plots so the horizontal axis reads more naturally with the intended interpretation: moving to the right now corresponds to getting closer to the appointment.
+- Simplified the y-axis numeric labels in the cancellation plots to avoid the scientific-notation style that was hurting readability.
 - Updated [first_two_class_simulation_note.tex](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.tex) so cancellation is now modeled in the note as a direct daily function \(\phi_i(\tau,r)\), depending both on the original promised delay and on the remaining time until the appointment.
 - Replaced the cancellation figure and its discussion so the note now reflects the intended business intuition: patients booked far in advance start more cancellation-prone, but daily cancellation risk falls as the appointment approaches.
 - Aligned the main implementation path with the note by allowing `PatientClassConfig` to take a direct cancellation function \(\phi_i(\tau,r)\) and by evaluating cancellation in the engine from both booked delay `\tau` and residual delay `r`.

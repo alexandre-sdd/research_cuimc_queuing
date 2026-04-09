@@ -386,36 +386,51 @@ This is deliberately simple:
     \item for a fixed booked patient, daily cancellation risk falls as the appointment approaches because \(r/\tau\) becomes smaller over time.
 \end{itemize}
 
-\begin{examplebox}[title={Illustration of the Daily Cancellation Function}]
+\begin{examplebox}[title={Illustration of the Daily Cancellation Function}, breakable=false]
 The figure below shows \(\phi_i(\tau,r)\) for two illustrative patient classes, using two booked
 delays in each class:
+\begin{center}
+\begin{minipage}{0.47\linewidth}
+{\small
 \[
 \phi_1(\tau,r)=
 \begin{cases}
 0, & r=0,\\
-\min\{0.01+0.008\tau,\,0.12\}\dfrac{r}{\tau}, & 1\le r\le \tau,
+\min\{0.01+0.008\tau,\,0.12\}\dfrac{r}{\tau}, & 1\le r\le \tau
 \end{cases}
-\qquad
+\]
+}
+\end{minipage}
+\hfill
+\begin{minipage}{0.47\linewidth}
+{\small
+\[
 \phi_2(\tau,r)=
 \begin{cases}
 0, & r=0,\\
-\min\{0.02+0.012\tau,\,0.18\}\dfrac{r}{\tau}, & 1\le r\le \tau.
+\min\{0.02+0.012\tau,\,0.18\}\dfrac{r}{\tau}, & 1\le r\le \tau
 \end{cases}
 \]
+}
+\end{minipage}
+\end{center}
 
 \begin{center}
 \begin{tikzpicture}
 \begin{axis}[
     width=0.46\linewidth,
     height=5.4cm,
-    xlabel={remaining delay \(r\) (days)},
+    xlabel={remaining delay \(r\) (appointment gets closer \(\rightarrow\))},
     ylabel={daily cancellation probability},
+    x dir=reverse,
     xmin=0,
     xmax=10,
     ymin=0,
     ymax=0.13,
-    xtick={0,2,4,6,8,10},
+    xtick={10,8,6,4,2,0},
     ytick={0,0.02,0.04,0.06,0.08,0.10,0.12},
+    scaled y ticks=false,
+    yticklabel style={/pgf/number format/fixed,/pgf/number format/precision=2},
     grid=both,
     grid style={gray!20},
     major grid style={gray!35},
@@ -432,14 +447,17 @@ delays in each class:
     anchor=south west,
     width=0.46\linewidth,
     height=5.4cm,
-    xlabel={remaining delay \(r\) (days)},
+    xlabel={remaining delay \(r\) (appointment gets closer \(\rightarrow\))},
     ylabel={daily cancellation probability},
+    x dir=reverse,
     xmin=0,
     xmax=10,
     ymin=0,
     ymax=0.19,
-    xtick={0,2,4,6,8,10},
+    xtick={10,8,6,4,2,0},
     ytick={0,0.03,0.06,0.09,0.12,0.15,0.18},
+    scaled y ticks=false,
+    yticklabel style={/pgf/number format/fixed,/pgf/number format/precision=2},
     grid=both,
     grid style={gray!20},
     major grid style={gray!35},
