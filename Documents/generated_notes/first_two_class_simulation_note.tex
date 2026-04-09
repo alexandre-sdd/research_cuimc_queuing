@@ -579,17 +579,33 @@ realization \((Y,X)\), and as the input to the booking and attendance equations.
 \subsection{Arrival-Cohort Measures}
 
 For patients who arrive during the measured window, define:
-\begin{align*}
-\mathrm{Arrivals}_i &= \text{number of class-}i\text{ appointment requests}, \\
-\mathrm{Booked}_i &= \text{number of class-}i\text{ requests that accept an offer}, \\
-\mathrm{Balked}_i &= \text{number of class-}i\text{ requests that were offered a slot and declined it}, \\
-\mathrm{NoOffer}_i &= \text{number of class-}i\text{ requests for which no eligible slot was available}, \\
-\mathrm{NotBooked}_i &= \mathrm{Balked}_i + \mathrm{NoOffer}_i, \\
-\mathrm{Canceled}_i &= \text{number of class-}i\text{ booked patients who pre-cancel}, \\
-\mathrm{NoShow}_i &= \text{number of class-}i\text{ booked patients who remain scheduled but do not attend}, \\
-\mathrm{Served}_i &= \text{number of class-}i\text{ booked patients who attend}, \\
-\bar{\tau}^{\mathrm{book}}_i &= \text{mean original booking delay among class-}i\text{ booked patients}.
-\end{align*}
+\begin{center}
+\small
+\begin{tabular}{L{0.26\textwidth} L{0.60\textwidth}}
+\toprule
+\textbf{Measure} & \textbf{Definition} \\
+\midrule
+\(\mathrm{Arrivals}_i\) & number of class-\(i\) appointment requests \\
+\addlinespace
+\(\mathrm{Booked}_i\) & number of class-\(i\) requests that accept an offer \\
+\addlinespace
+\(\mathrm{Balked}_i\) & number of class-\(i\) requests that were offered a slot and declined it \\
+\addlinespace
+\(\mathrm{NoOffer}_i\) & number of class-\(i\) requests for which no eligible slot was available \\
+\addlinespace
+\(\mathrm{NotBooked}_i\) & \(\mathrm{Balked}_i + \mathrm{NoOffer}_i\) \\
+\addlinespace
+\(\mathrm{Canceled}_i\) & number of class-\(i\) booked patients who pre-cancel \\
+\addlinespace
+\(\mathrm{NoShow}_i\) & number of class-\(i\) booked patients who remain scheduled but do not attend \\
+\addlinespace
+\(\mathrm{Served}_i\) & number of class-\(i\) booked patients who attend \\
+\addlinespace
+\(\bar{\tau}^{\mathrm{book}}_i\) & mean original booking delay among class-\(i\) booked patients \\
+\bottomrule
+\end{tabular}
+\normalsize
+\end{center}
 
 The main service metric in the first version is
 \[
