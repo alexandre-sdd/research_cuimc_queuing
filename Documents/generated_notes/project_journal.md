@@ -53,17 +53,17 @@ These are the highest-priority next steps based on the current scope.
 
 The standalone review of the initial formulation note identified three document-level follow-ups:
 
-1. Update the metrics section so it matches the implemented simulator distinction between `balked`, `no_offer`, and `not_booked`.
-2. Add a short front-end reader guide or abstract that states clearly what the note is, what it is not, and who should read which sections.
-3. Add an explicit scope/status section so a supervisor can immediately see what is already in the simulator versus what remains future work.
+1. The metrics section now matches the implemented simulator distinction between `balked`, `no_offer`, and `not_booked`.
+2. The note now has a clearer front-end reader guide and a more hierarchical section structure.
+3. A possible remaining document-level improvement would be to decide whether the formulation note should stay purely technical or absorb a compact scope/status section for supervisor-facing use.
 
 ## Most Recent Completed Task
 
-- Reviewed the modeling strategy and the code alignment, with emphasis on whether FCFS is the right first policy and whether the implementation matches the mathematical state.
-- Rewrote the main examples in [first_two_class_simulation_note.tex](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.tex) so they now use realistic clinic-style appointment times and patient classes that match the rest of the project.
-- Added a direct bridge from narrative example to state and equations, so the same appointment can be read as a real scheduling story, a state entry `Y_t(r,m)`, and a set of behavioral equations using `b_i(\tau)`, `\phi_i(\tau)`, and `\xi_i(\tau)`.
-- Added a short `Strategy and Code Review` section in the note, plus code docstrings clarifying how the implementation stores `\bar{\phi}_i` and derives the daily cancellation function.
-- Recompiled [first_two_class_simulation_note.pdf](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.pdf) after the documentation and code-annotation updates.
+- Reorganized [first_two_class_simulation_note.tex](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.tex) to reduce the number of top-level sections and create a clearer hierarchy between modeling choice, formulation, measures, and literature/code discussion.
+- Added a short reader-guide paragraph near the front of the note so the document reads more cleanly as a standalone technical memo.
+- Merged several repetitive justification blocks into fewer sections, especially around why the formulation is appropriate and how it links to the literature.
+- Converted the former short standalone sections on implementation and strategy into subsections under a single broader literature-and-code block.
+- Recompiled [first_two_class_simulation_note.pdf](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.pdf) after the structural rewrite.
 
 ## Updated Task Assessment
 
