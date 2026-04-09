@@ -59,6 +59,7 @@ The standalone review of the initial formulation note identified three document-
 
 ## Most Recent Completed Task
 
+- Updated the markdown in the notebooks so mathematical notation is rendered with LaTeX delimiters `$$...$$` instead of backticks wherever the content is part of the model notation.
 - Cleaned up the cancellation illustration in [first_two_class_simulation_note.tex](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.tex) so the two class-specific formulas no longer overflow the example box.
 - Reworked the cancellation plots so they use the normalized remaining share `r/\tau`; this makes the `\tau=3` and `\tau=10` curves comparable on the same full-width horizontal scale and makes the “appointment gets closer” interpretation visually clear.
 - Removed the extra floating “appointment gets closer” annotation under the cancellation plots because the interpretation is already stated in the lead-in sentence and the extra label was visually colliding with the axes.
