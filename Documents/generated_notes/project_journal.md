@@ -59,6 +59,8 @@ The standalone review of the initial formulation note identified three document-
 
 ## Most Recent Completed Task
 
+- Removed paragraph indentation in [first_two_class_simulation_note.tex](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.tex) and switched the note to a small positive paragraph spacing so blocks of text remain visually distinguishable without the traditional first-line indent.
+- Recompiled [first_two_class_simulation_note.pdf](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.pdf) after the paragraph-style change to confirm the note still reads cleanly.
 - Standardized bullet and numbered-list indentation in [first_two_class_simulation_note.tex](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.tex) with global `enumitem` settings so the visual alignment is now consistent across callout boxes, numbered steps, and references.
 - Removed a few local `leftmargin=*` overrides that were creating uneven list offsets in different parts of the note.
 - Recompiled [first_two_class_simulation_note.pdf](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.pdf) after the list-formatting cleanup. The remaining LaTeX warning is still the minor calendar-table layout warning, not a list-formatting issue.
