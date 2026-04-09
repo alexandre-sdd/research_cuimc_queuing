@@ -236,6 +236,7 @@ def test_behavior_profiles_match_simulator_conventions() -> None:
         "balk_probability",
         "no_show_probability",
         "daily_cancel_probability",
+        "cumulative_cancel_probability",
     }
     assert len(frame) == 30
     assert (frame.loc[frame["tau_booked"] == 0, "residual_delay"] == 0).all()
@@ -246,6 +247,13 @@ def test_behavior_profiles_match_simulator_conventions() -> None:
     assert tau_4.iloc[0]["daily_cancel_probability"] == 0.0
     assert tau_4.iloc[-1]["daily_cancel_probability"] > tau_4.iloc[1]["daily_cancel_probability"]
     assert list(tau_4["daily_cancel_probability"]) == sorted(tau_4["daily_cancel_probability"])
+    assert tau_4.loc[tau_4["residual_delay"] == 4, "cumulative_cancel_probability"].iloc[0] == 0.0
+    assert tau_4.loc[tau_4["residual_delay"] == 0, "cumulative_cancel_probability"].iloc[0] > 0.0
+
+    cumulative_in_time_order = (
+        tau_4.sort_values("residual_delay", ascending=False)["cumulative_cancel_probability"].tolist()
+    )
+    assert cumulative_in_time_order == sorted(cumulative_in_time_order)
 
     booking_day_cancel_tau_4 = frame.loc[
         (frame["class_id"] == 1) & (frame["tau_booked"] == 4) & (frame["residual_delay"] == 4),

@@ -17,6 +17,32 @@ def effective_cancellation_probability(
     return evaluate_cancellation_probability(class_config.cancel_probability, tau, residual_delay)
 
 
+def cumulative_cancellation_probability(
+    class_config: PatientClassConfig,
+    tau: int,
+    residual_delay: int,
+) -> float:
+    """
+    Return the probability that the patient has already canceled by residual delay ``r``.
+
+    This is the exact cumulative cancellation probability implied by the daily
+    hazards ``phi(tau, k)`` for ``k = tau, tau - 1, ..., 1``. It is therefore
+    based on a survival product, not a simple cumulative sum.
+    """
+    if tau <= 0:
+        return 0.0
+    if residual_delay < 0:
+        residual_delay = 0
+    if residual_delay >= tau:
+        return 0.0
+
+    survival_probability = 1.0
+    for day_residual_delay in range(tau, residual_delay, -1):
+        daily_hazard = effective_cancellation_probability(class_config, tau, day_residual_delay)
+        survival_probability *= 1.0 - daily_hazard
+    return clamp_probability(1.0 - survival_probability)
+
+
 def behavior_profile_frame(
     class_configs: Sequence[PatientClassConfig],
     horizon_days: int,
@@ -40,6 +66,11 @@ def behavior_profile_frame(
                         "balk_probability": clamp_probability(class_config.balk_probability(tau_booked)),
                         "no_show_probability": clamp_probability(class_config.no_show_probability(tau_booked)),
                         "daily_cancel_probability": effective_cancellation_probability(
+                            class_config,
+                            tau_booked,
+                            residual_delay,
+                        ),
+                        "cumulative_cancel_probability": cumulative_cancellation_probability(
                             class_config,
                             tau_booked,
                             residual_delay,
