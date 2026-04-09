@@ -6,10 +6,12 @@
 \usepackage{booktabs}
 \usepackage{enumitem}
 \usepackage{hyperref}
+\usepackage{pgfplots}
 \usepackage[most]{tcolorbox}
 \usepackage[table]{xcolor}
 \usepackage{tikz}
 \usetikzlibrary{fit}
+\pgfplotsset{compat=1.18}
 
 \newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
 \newcommand{\calendarentry}[1]{\rule{0pt}{2.9ex}#1}
@@ -375,6 +377,69 @@ class-level eventual cancellation parameter $\bar{\phi}_i$ according to
 so that a patient who booked with delay $\tau$ and faces one cancellation trial at the end of each
 pre-appointment day still has total cancellation probability $\bar{\phi}_i$ before the appointment.
 Later versions may generalize this further to a directly delay-sensitive cancellation object.
+
+\begin{examplebox}[title={Illustration of the Daily Cancellation Function}]
+The figure below shows the implied daily cancellation probability \(\phi_i(\tau)\) for two
+illustrative eventual cancellation levels, \(\bar{\phi}_i=0.10\) and \(\bar{\phi}_i=0.30\).
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[
+    width=0.82\linewidth,
+    height=5.6cm,
+    xlabel={accepted delay \(\tau\) (days)},
+    ylabel={daily cancellation probability \(\phi_i(\tau)\)},
+    xmin=0,
+    xmax=15,
+    ymin=0,
+    ymax=0.32,
+    xtick={0,3,6,9,12,15},
+    ytick={0,0.05,0.10,0.15,0.20,0.25,0.30},
+    grid=both,
+    grid style={gray!20},
+    major grid style={gray!35},
+    legend style={draw=none, fill=none, at={(0.98,0.98)}, anchor=north east},
+]
+\addplot[
+    smooth,
+    thick,
+    color=FrameBlue,
+    domain=1:15,
+    samples=200,
+] {1 - (1-0.10)^(1/x)};
+\addplot[
+    only marks,
+    mark=*,
+    mark size=1.8pt,
+    color=FrameBlue,
+] coordinates {(0,0)};
+\addlegendentry{\(\bar{\phi}_i=0.10\)}
+
+\addplot[
+    smooth,
+    thick,
+    color=FrameGold,
+    domain=1:15,
+    samples=200,
+] {1 - (1-0.30)^(1/x)};
+\addplot[
+    only marks,
+    mark=square*,
+    mark size=1.7pt,
+    color=FrameGold,
+] coordinates {(0,0)};
+\addlegendentry{\(\bar{\phi}_i=0.30\)}
+\end{axis}
+\end{tikzpicture}
+\end{center}
+
+Business-wise, this function says three things:
+\begin{itemize}[nosep]
+    \item same-day bookings have no pre-appointment cancellation exposure, so \(\phi_i(0)=0\);
+    \item for a fixed eventual cancellation propensity \(\bar{\phi}_i\), the per-day cancellation probability is smaller when the patient booked farther in advance, because the same total risk is spread across more waiting days;
+    \item a higher-\(\bar{\phi}_i\) class sits uniformly above a lower-\(\bar{\phi}_i\) class, so it creates more expected calendar holes throughout the booking horizon.
+\end{itemize}
+\end{examplebox}
 
 \section{Dynamics and Baseline Policy}
 

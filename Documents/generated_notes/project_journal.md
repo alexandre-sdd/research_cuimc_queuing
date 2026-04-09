@@ -59,6 +59,9 @@ The standalone review of the initial formulation note identified three document-
 
 ## Most Recent Completed Task
 
+- Added an illustrative plot of the daily cancellation function \(\phi_i(\tau)\) to [first_two_class_simulation_note.tex](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.tex), directly after its definition, together with a short business interpretation of what the curve means operationally.
+- Introduced `pgfplots` in the note so simple analytical function plots can be embedded directly in the write-up when needed.
+- Recompiled [first_two_class_simulation_note.pdf](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.pdf) after adding the cancellation-function figure.
 - Replaced the slot-based measure definitions in [first_two_class_simulation_note.tex](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.tex) with a two-column table so the performance-measure section uses the same readable format for both arrival-cohort and slot-based KPIs.
 - Recompiled [first_two_class_simulation_note.pdf](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.pdf) after the slot-measure table conversion.
 - Replaced the arrival-cohort definition block in [first_two_class_simulation_note.tex](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.tex) with a two-column table so the KPI notation and its interpretation are easier to scan in the performance-measures section.
