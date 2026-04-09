@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.3.8)  9 APR 2026 12:21
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.3.8)  9 APR 2026 12:32
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1022,6 +1022,13 @@ File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 [4]
 
 [5]
+Overfull \hbox (1.74219pt too wide) detected at line 395
+\OML/cmm/m/it/10.95 ^^^[]\OT1/cmr/m/n/10.95 (\OML/cmm/m/it/10.95 ^^\\OT1/cmr/m/
+n/10.95 ) = []  \OML/cmm/m/it/10.95 ^^^[]\OT1/cmr/m/n/10.95 (\OML/cmm/m/it/10.9
+5 ^^\\OT1/cmr/m/n/10.95 ) = []
+ []
+
+
 
 [6]
 
@@ -1053,6 +1060,13 @@ c struc-ture:
 [11]
 
 [12]
+Overfull \hbox (3.46936pt too wide) in paragraph at lines 827--830
+[]\OT1/cmr/m/n/10.95 the cur-rent im-ple-men-ta-tion still stores can-cel-la-ti
+on through the scalar field \OT1/cmtt/m/n/10.95 cancel[]probability\OT1/cmr/m/n
+/10.95 ,
+ []
+
+
 
 [13] (Documents/generated_notes/first_two_class_simulation_note.aux)
  ***********
@@ -1064,13 +1078,13 @@ Package rerunfilecheck Info: File `first_two_class_simulation_note.out' has not
 (rerunfilecheck)             Checksum: B05A9A2AD207732F2876D99D4F4148C1;2963.
  ) 
 Here is how much of TeX's memory you used:
- 38448 strings out of 473190
- 915588 string characters out of 5715801
- 1553030 words of memory out of 5000000
- 61060 multiletter control sequences out of 15000+600000
+ 38459 strings out of 473190
+ 915796 string characters out of 5715801
+ 1550142 words of memory out of 5000000
+ 61071 multiletter control sequences out of 15000+600000
  570956 words of font info for 82 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 99i,18n,105p,781b,2448s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 99i,18n,105p,781b,2374s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb
 ></usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb>
 </usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb><
@@ -1090,7 +1104,7 @@ e/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmss10.pfb></usr/local/texlive
 /texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb></usr/local/texlive/
 2025/texmf-dist/fonts/type1/public/cm-super/sfrm1095.pfb>
 Output written on Documents/generated_notes/first_two_class_simulation_note.pdf
- (13 pages, 273594 bytes).
+ (13 pages, 273230 bytes).
 PDF statistics:
  316 PDF objects out of 1000 (max. 8388607)
  238 compressed objects within 3 object streams

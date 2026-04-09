@@ -59,6 +59,10 @@ The standalone review of the initial formulation note identified three document-
 
 ## Most Recent Completed Task
 
+- Updated [first_two_class_simulation_note.tex](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.tex) so cancellation is now modeled in the note as a direct daily delay-sensitive function \(\phi_i(\tau)\), instead of being induced from a fixed eventual cancellation parameter.
+- Replaced the cancellation figure and its discussion so the note now reflects the intended business intuition: longer promised delays increase daily cancellation risk, up to a class-specific cap.
+- Updated the implementation-notes section to state explicitly that the code still uses the older scalar cancellation parameter, so the note and the current implementation are temporarily misaligned on that one component.
+- Recompiled [first_two_class_simulation_note.pdf](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.pdf) after the cancellation-model rewrite.
 - Added an illustrative plot of the daily cancellation function \(\phi_i(\tau)\) to [first_two_class_simulation_note.tex](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.tex), directly after its definition, together with a short business interpretation of what the curve means operationally.
 - Introduced `pgfplots` in the note so simple analytical function plots can be embedded directly in the write-up when needed.
 - Recompiled [first_two_class_simulation_note.pdf](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.pdf) after adding the cancellation-function figure.

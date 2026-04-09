@@ -365,22 +365,34 @@ The interpretation is therefore:
     \item $\xi_i(\tau)$: no-show probability at appointment time, conditional on the patient still being scheduled.
 \end{itemize}
 
-In the current first version, the daily cancellation function $\phi_i(\tau)$ is induced by a
-class-level eventual cancellation parameter $\bar{\phi}_i$ according to
+In the current first version, the daily cancellation function is specified directly as a simple,
+delay-increasing object:
 \[
 \phi_i(\tau)=
 \begin{cases}
 0, & \tau=0,\\[0.4em]
-1-(1-\bar{\phi}_i)^{1/\tau}, & \tau\ge 1,
+\min\{a_i+b_i\tau,\phi_{i,\max}\}, & \tau\ge 1,
 \end{cases}
 \]
-so that a patient who booked with delay $\tau$ and faces one cancellation trial at the end of each
-pre-appointment day still has total cancellation probability $\bar{\phi}_i$ before the appointment.
-Later versions may generalize this further to a directly delay-sensitive cancellation object.
+where \(a_i \ge 0\), \(b_i \ge 0\), and \(\phi_{i,\max}\in[0,1]\) are class-specific parameters.
+This is deliberately simple: same-day bookings cannot pre-cancel, and longer promised delays lead to
+higher daily cancellation risk up to a class-specific cap.
 
 \begin{examplebox}[title={Illustration of the Daily Cancellation Function}]
-The figure below shows the implied daily cancellation probability \(\phi_i(\tau)\) for two
-illustrative eventual cancellation levels, \(\bar{\phi}_i=0.10\) and \(\bar{\phi}_i=0.30\).
+The figure below shows \(\phi_i(\tau)\) for two illustrative patient classes:
+\[
+\phi_1(\tau)=
+\begin{cases}
+0, & \tau=0,\\
+\min\{0.01+0.008\tau,\,0.12\}, & \tau\ge 1,
+\end{cases}
+\qquad
+\phi_2(\tau)=
+\begin{cases}
+0, & \tau=0,\\
+\min\{0.02+0.012\tau,\,0.18\}, & \tau\ge 1.
+\end{cases}
+\]
 
 \begin{center}
 \begin{tikzpicture}
@@ -404,31 +416,19 @@ illustrative eventual cancellation levels, \(\bar{\phi}_i=0.10\) and \(\bar{\phi
     smooth,
     thick,
     color=FrameBlue,
-    domain=1:15,
+    domain=0:15,
     samples=200,
-] {1 - (1-0.10)^(1/x)};
-\addplot[
-    only marks,
-    mark=*,
-    mark size=1.8pt,
-    color=FrameBlue,
-] coordinates {(0,0)};
-\addlegendentry{\(\bar{\phi}_i=0.10\)}
+] {x < 1 ? 0 : min(0.01 + 0.008*x, 0.12)};
+\addlegendentry{class 1}
 
 \addplot[
     smooth,
     thick,
     color=FrameGold,
-    domain=1:15,
+    domain=0:15,
     samples=200,
-] {1 - (1-0.30)^(1/x)};
-\addplot[
-    only marks,
-    mark=square*,
-    mark size=1.7pt,
-    color=FrameGold,
-] coordinates {(0,0)};
-\addlegendentry{\(\bar{\phi}_i=0.30\)}
+] {x < 1 ? 0 : min(0.02 + 0.012*x, 0.18)};
+\addlegendentry{class 2}
 \end{axis}
 \end{tikzpicture}
 \end{center}
@@ -436,8 +436,8 @@ illustrative eventual cancellation levels, \(\bar{\phi}_i=0.10\) and \(\bar{\phi
 Business-wise, this function says three things:
 \begin{itemize}[nosep]
     \item same-day bookings have no pre-appointment cancellation exposure, so \(\phi_i(0)=0\);
-    \item for a fixed eventual cancellation propensity \(\bar{\phi}_i\), the per-day cancellation probability is smaller when the patient booked farther in advance, because the same total risk is spread across more waiting days;
-    \item a higher-\(\bar{\phi}_i\) class sits uniformly above a lower-\(\bar{\phi}_i\) class, so it creates more expected calendar holes throughout the booking horizon.
+    \item patients with longer waits are more likely to cancel on any given pre-appointment day, which matches the intuition that long waits create more opportunities to reschedule, recover, or drop out;
+    \item a more cancellation-prone class sits uniformly above a less cancellation-prone class and therefore creates more expected holes in the future calendar.
 \end{itemize}
 \end{examplebox}
 
@@ -477,7 +477,7 @@ This timing is operationally natural:
 \begin{itemize}[nosep]
     \item a booking with $\tau=1$ gets exactly one chance to cancel, namely at the end of the booking day,
     \item a booking with $\tau=2$ gets two daily cancellation opportunities before service,
-    \item the total cancellation probability across those daily trials remains $\bar{\phi}_i$.
+    \item because \(\phi_i(\tau)\) now increases with the promised delay, longer waits create both more cancellation opportunities and a higher daily chance of dropping out.
 \end{itemize}
 
 \subsection{FCFS Baseline Policy}
@@ -824,7 +824,9 @@ The current codebase follows this notation directly:
     \item the arrival log records the offered delay as \texttt{tau\_offered},
     \item the cohort and slot logs record the same mathematical quantity $\tau$ under the implementation field name \texttt{tau\_booked},
     \item the day-start state log records the residual day offset as \texttt{residual\_delay},
-    \item the class configuration field \texttt{cancel\_probability} stores the class-level eventual cancellation parameter $\bar{\phi}_i$, from which the daily function $\phi_i(\tau)$ is derived in code.
+    \item the current implementation still stores cancellation through the scalar field
+    \texttt{cancel\_probability}, while this note now recommends moving to a direct daily
+    cancellation function \(\phi_i(\tau)\).
 \end{itemize}
 
 This is the same split as in the mathematical formulation.
@@ -848,11 +850,11 @@ final operational recommendation when classes differ in delay sensitivity.
 The implementation is also intentionally a little richer than the minimal mathematical state. The
 calendar keeps additional audit information so logs and journals can be produced, but the key
 behavioral content still remains the pair \((i,\tau)\). The main provisional simplification is
-cancellation: mathematically the note works with \(\phi_i(\tau)\), while in code the current class
-configuration still starts from a scalar parameter \(\bar{\phi}_i\) and derives the daily
-cancellation function internally. That is acceptable for the first prototype, but the natural next
-step is to let the code accept a cancellation function directly if future data support that level
-of estimation.
+cancellation: mathematically the note now works with a direct daily function \(\phi_i(\tau)\),
+while the current code still starts from a scalar cancellation parameter and derives a daily
+hazard internally. So the state and delay notation remain aligned, but the cancellation component
+of the implementation should be updated next if the codebase is to match this revised formulation
+exactly.
 
 \section{References}
 
