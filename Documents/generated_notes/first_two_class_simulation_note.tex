@@ -12,6 +12,7 @@
 \usetikzlibrary{fit}
 
 \newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcommand{\calendarentry}[1]{\rule{0pt}{2.9ex}#1}
 \definecolor{SoftBlue}{HTML}{EEF6FC}
 \definecolor{FrameBlue}{HTML}{2C6E91}
 \definecolor{SoftGold}{HTML}{FFF4E5}
@@ -436,7 +437,8 @@ Before filling in a specific scenario, it helps to see the shape of the state. T
 calendar has the following generic structure:
 \medskip
 \noindent\makebox[\linewidth][c]{%
-\renewcommand{\arraystretch}{1.35}
+\renewcommand{\arraystretch}{1.55}
+\setlength{\extrarowheight}{2pt}
 \setlength{\tabcolsep}{7pt}
 \resizebox{0.95\linewidth}{!}{
 \begin{tabular}{|>{\raggedright\arraybackslash}m{2.3cm}|>{\centering\arraybackslash}m{2.0cm}|>{\centering\arraybackslash}m{2.0cm}|>{\centering\arraybackslash}m{1.5cm}|>{\centering\arraybackslash}m{2.4cm}|}
@@ -444,13 +446,13 @@ calendar has the following generic structure:
 \rowcolor{gray!15}
 \textbf{Slot in day} & \shortstack{\textbf{day $D$}\\($r=0$)} & \shortstack{\textbf{day $D+1$}\\($r=1$)} & \textbf{$\cdots$} & \shortstack{\textbf{day $D+H-1$}\\($r=H-1$)} \\
 \hline
-\cellcolor{gray!10}\shortstack[l]{\textbf{slot 0}\\($m=0$)} & $Y_t(0,0)$ & $Y_t(1,0)$ & $\cdots$ & $Y_t(H-1,0)$ \\
+\cellcolor{gray!10}\shortstack[l]{\textbf{slot 0}\\($m=0$)} & \calendarentry{$Y_t(0,0)$} & \calendarentry{$Y_t(1,0)$} & \calendarentry{$\cdots$} & \calendarentry{$Y_t(H-1,0)$} \\
 \hline
-\cellcolor{gray!10}\shortstack[l]{\textbf{slot 1}\\($m=1$)} & $Y_t(0,1)$ & $Y_t(1,1)$ & $\cdots$ & $Y_t(H-1,1)$ \\
+\cellcolor{gray!10}\shortstack[l]{\textbf{slot 1}\\($m=1$)} & \calendarentry{$Y_t(0,1)$} & \calendarentry{$Y_t(1,1)$} & \calendarentry{$\cdots$} & \calendarentry{$Y_t(H-1,1)$} \\
 \hline
-\cellcolor{gray!8}\textbf{later slots} & $\vdots$ & $\vdots$ & $\ddots$ & $\vdots$ \\
+\cellcolor{gray!8}\textbf{later slots} & \calendarentry{$\vdots$} & \calendarentry{$\vdots$} & \calendarentry{$\ddots$} & \calendarentry{$\vdots$} \\
 \hline
-\cellcolor{gray!10}\shortstack[l]{\textbf{slot $S-1$}\\($m=S-1$)} & $Y_t(0,S-1)$ & $Y_t(1,S-1)$ & $\cdots$ & $Y_t(H-1,S-1)$ \\
+\cellcolor{gray!10}\shortstack[l]{\textbf{slot $S-1$}\\($m=S-1$)} & \calendarentry{$Y_t(0,S-1)$} & \calendarentry{$Y_t(1,S-1)$} & \calendarentry{$\cdots$} & \calendarentry{$Y_t(H-1,S-1)$} \\
 \hline
 \end{tabular}
 }%
@@ -473,7 +475,8 @@ calendar covers today, tomorrow, and the day after tomorrow.
 
 A realistic FCFS-consistent miniature appointment book looks like this:
 \begin{center}
-\renewcommand{\arraystretch}{1.4}
+\renewcommand{\arraystretch}{1.65}
+\setlength{\extrarowheight}{2pt}
 \setlength{\tabcolsep}{6pt}
 \resizebox{\textwidth}{!}{
 \begin{tabular}{|>{\raggedright\arraybackslash}m{2.3cm}|>{\centering\arraybackslash}m{2.2cm}|>{\centering\arraybackslash}m{2.2cm}|>{\centering\arraybackslash}m{2.2cm}|}
@@ -482,24 +485,24 @@ A realistic FCFS-consistent miniature appointment book looks like this:
 \textbf{Slot in day} & \textbf{day $D$} & \textbf{day $D+1$} & \textbf{day $D+2$} \\
 \hline
 \cellcolor{gray!10}\shortstack[l]{\textbf{08:00}\\($m=0$)} &
-\cellcolor{blue!12}$(1,0)$ &
-\cellcolor{orange!18}$(2,1)$ &
-\cellcolor{orange!18}$(2,2)$ \\
+\cellcolor{blue!12}\calendarentry{$(1,0)$} &
+\cellcolor{orange!18}\calendarentry{$(2,1)$} &
+\cellcolor{orange!18}\calendarentry{$(2,2)$} \\
 \hline
 \cellcolor{gray!10}\shortstack[l]{\textbf{10:00}\\($m=1$)} &
-\cellcolor{orange!18}$(2,0)$ &
-\cellcolor{blue!12}$(1,1)$ &
-\cellcolor{green!12}\textsf{open} \\
+\cellcolor{orange!18}\calendarentry{$(2,0)$} &
+\cellcolor{blue!12}\calendarentry{$(1,1)$} &
+\cellcolor{green!12}\calendarentry{\textsf{open}} \\
 \hline
 \cellcolor{gray!10}\shortstack[l]{\textbf{13:00}\\($m=2$)} &
-\cellcolor{blue!12}$(1,0)$ &
-\cellcolor{orange!18}$(2,1)$ &
-\cellcolor{green!12}\textsf{open} \\
+\cellcolor{blue!12}\calendarentry{$(1,0)$} &
+\cellcolor{orange!18}\calendarentry{$(2,1)$} &
+\cellcolor{green!12}\calendarentry{\textsf{open}} \\
 \hline
 \cellcolor{gray!10}\shortstack[l]{\textbf{15:00}\\($m=3$)} &
-\cellcolor{green!12}\textsf{open} &
-\cellcolor{blue!12}$(1,1)$ &
-\cellcolor{green!12}\textsf{open} \\
+\cellcolor{green!12}\calendarentry{\textsf{open}} &
+\cellcolor{blue!12}\calendarentry{$(1,1)$} &
+\cellcolor{green!12}\calendarentry{\textsf{open}} \\
 \hline
 \end{tabular}
 }

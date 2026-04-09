@@ -59,6 +59,8 @@ The standalone review of the initial formulation note identified three document-
 
 ## Most Recent Completed Task
 
+- Increased the effective cell height in the colored calendar tables of [first_two_class_simulation_note.tex](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.tex) by combining a larger `\arraystretch`, a small `\extrarowheight`, and a dedicated `\calendarentry{...}` strut macro.
+- Recompiled [first_two_class_simulation_note.pdf](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.pdf) to check that the table contents no longer sit too tightly against the colored cell borders.
 - Removed paragraph indentation in [first_two_class_simulation_note.tex](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.tex) and switched the note to a small positive paragraph spacing so blocks of text remain visually distinguishable without the traditional first-line indent.
 - Recompiled [first_two_class_simulation_note.pdf](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.pdf) after the paragraph-style change to confirm the note still reads cleanly.
 - Standardized bullet and numbered-list indentation in [first_two_class_simulation_note.tex](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.tex) with global `enumitem` settings so the visual alignment is now consistent across callout boxes, numbered steps, and references.
