@@ -390,7 +390,6 @@ This is deliberately simple:
 The figure below shows \(\phi_i(\tau,r)\) for two illustrative patient classes, using two booked
 delays in each class:
 \begin{center}
-\begin{minipage}{0.47\linewidth}
 {\small
 \[
 \phi_1(\tau,r)=
@@ -400,9 +399,6 @@ delays in each class:
 \end{cases}
 \]
 }
-\end{minipage}
-\hfill
-\begin{minipage}{0.47\linewidth}
 {\small
 \[
 \phi_2(\tau,r)=
@@ -412,22 +408,26 @@ delays in each class:
 \end{cases}
 \]
 }
-\end{minipage}
 \end{center}
+
+To compare \(\tau=3\) and \(\tau=10\) on the same horizontal scale, the plots below use the
+normalized remaining share \(r/\tau\). So each curve starts at booking time on the left
+\((r/\tau = 1)\) and ends at the appointment on the right \((r/\tau = 0)\).
 
 \begin{center}
 \begin{tikzpicture}
 \begin{axis}[
     width=0.46\linewidth,
     height=5.4cm,
-    xlabel={remaining delay \(r\) (appointment gets closer \(\rightarrow\))},
+    xlabel={remaining share \(r/\tau\)},
+    xlabel style={align=center},
     ylabel={daily cancellation probability},
     x dir=reverse,
     xmin=0,
-    xmax=10,
+    xmax=1,
     ymin=0,
     ymax=0.13,
-    xtick={10,8,6,4,2,0},
+    xtick={1,0.75,0.5,0.25,0},
     ytick={0,0.02,0.04,0.06,0.08,0.10,0.12},
     scaled y ticks=false,
     yticklabel style={/pgf/number format/fixed,/pgf/number format/precision=2},
@@ -437,9 +437,9 @@ delays in each class:
     title={class 1},
     legend style={draw=none, fill=none, at={(0.98,0.98)}, anchor=north east},
 ]
-\addplot[smooth, thick, color=FrameBlue, domain=0:3, samples=100] {x <= 0 ? 0 : min(0.01 + 0.008*3, 0.12)*(x/3)};
+\addplot[smooth, thick, color=FrameBlue, domain=0:1, samples=100] {min(0.01 + 0.008*3, 0.12)*x};
 \addlegendentry{\(\tau=3\)}
-\addplot[smooth, thick, dashed, color=FrameBlue, domain=0:10, samples=100] {x <= 0 ? 0 : min(0.01 + 0.008*10, 0.12)*(x/10)};
+\addplot[smooth, thick, dashed, color=FrameBlue, domain=0:1, samples=100] {min(0.01 + 0.008*10, 0.12)*x};
 \addlegendentry{\(\tau=10\)}
 \end{axis}
 \begin{axis}[
@@ -447,14 +447,15 @@ delays in each class:
     anchor=south west,
     width=0.46\linewidth,
     height=5.4cm,
-    xlabel={remaining delay \(r\) (appointment gets closer \(\rightarrow\))},
+    xlabel={remaining share \(r/\tau\)},
+    xlabel style={align=center},
     ylabel={daily cancellation probability},
     x dir=reverse,
     xmin=0,
-    xmax=10,
+    xmax=1,
     ymin=0,
     ymax=0.19,
-    xtick={10,8,6,4,2,0},
+    xtick={1,0.75,0.5,0.25,0},
     ytick={0,0.03,0.06,0.09,0.12,0.15,0.18},
     scaled y ticks=false,
     yticklabel style={/pgf/number format/fixed,/pgf/number format/precision=2},
@@ -464,11 +465,12 @@ delays in each class:
     title={class 2},
     legend style={draw=none, fill=none, at={(0.98,0.98)}, anchor=north east},
 ]
-\addplot[smooth, thick, color=FrameGold, domain=0:3, samples=100] {x <= 0 ? 0 : min(0.02 + 0.012*3, 0.18)*(x/3)};
+\addplot[smooth, thick, color=FrameGold, domain=0:1, samples=100] {min(0.02 + 0.012*3, 0.18)*x};
 \addlegendentry{\(\tau=3\)}
-\addplot[smooth, thick, dashed, color=FrameGold, domain=0:10, samples=100] {x <= 0 ? 0 : min(0.02 + 0.012*10, 0.18)*(x/10)};
+\addplot[smooth, thick, dashed, color=FrameGold, domain=0:1, samples=100] {min(0.02 + 0.012*10, 0.18)*x};
 \addlegendentry{\(\tau=10\)}
 \end{axis}
+\node[font=\small] at (7.7cm,-0.95cm) {appointment gets closer \(\rightarrow\)};
 \end{tikzpicture}
 \end{center}
 
