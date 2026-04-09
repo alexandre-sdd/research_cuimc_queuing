@@ -62,6 +62,7 @@ The standalone review of the initial formulation note identified three document-
 - Added a table of contents to [first_two_class_simulation_note.tex](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.tex) so the document is easier to navigate as a standalone note.
 - Added visually distinct boxes for the central feedback loop, the main calendar examples, and the key modeling distinction between residual delay `r` and booking-time delay `\tau`.
 - Refined the presentation so the examples read more clearly as worked examples rather than as ordinary body text.
+- Fixed the `tcolorbox` definitions so boxed headings render their intended titles rather than the literal word `title`.
 - Recompiled [first_two_class_simulation_note.pdf](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.pdf) after the visual pass and formatting changes.
 - Identified one remaining minor LaTeX layout warning in the schematic calendar table; it is small enough for now but may be worth cleaning up later if the note is polished further for external circulation.
 
