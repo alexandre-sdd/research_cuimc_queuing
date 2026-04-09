@@ -59,6 +59,8 @@ The standalone review of the initial formulation note identified three document-
 
 ## Most Recent Completed Task
 
+- Replaced the slot-based measure definitions in [first_two_class_simulation_note.tex](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.tex) with a two-column table so the performance-measure section uses the same readable format for both arrival-cohort and slot-based KPIs.
+- Recompiled [first_two_class_simulation_note.pdf](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.pdf) after the slot-measure table conversion.
 - Replaced the arrival-cohort definition block in [first_two_class_simulation_note.tex](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.tex) with a two-column table so the KPI notation and its interpretation are easier to scan in the performance-measures section.
 - Recompiled [first_two_class_simulation_note.pdf](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.pdf) after the table conversion to check the layout.
 - Rebuilt [behavior_functions.ipynb](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Notebooks/behavior_functions.ipynb) as a note-aligned model notebook, with explicit sections for the core objects `t`, `Y_t(r,m)`, `X_{i,r}^D`, `\tau`, and the three behavior families.

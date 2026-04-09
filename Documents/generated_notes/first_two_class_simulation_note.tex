@@ -581,7 +581,7 @@ realization \((Y,X)\), and as the input to the booking and attendance equations.
 For patients who arrive during the measured window, define:
 \begin{center}
 \small
-\begin{tabular}{L{0.26\textwidth} L{0.60\textwidth}}
+\begin{tabular}{L{0.26\textwidth} L{0.65\textwidth}}
 \toprule
 \textbf{Measure} & \textbf{Definition} \\
 \midrule
@@ -619,12 +619,23 @@ Aggregate values are formed by summing over classes and taking the corresponding
 \subsubsection{Slot-Based Measures}
 
 Over measured service slots, define:
-\begin{align*}
-\mathrm{BookedSlots} &= \text{slots with a booked patient at service time}, \\
-\mathrm{ServedSlots} &= \text{slots where the booked patient attends}, \\
-\mathrm{NoShowSlots} &= \text{slots where a booked patient is present on the schedule but does not attend}, \\
-\mathrm{EmptySlots} &= \text{slots with nobody scheduled at service time}.
-\end{align*}
+\begin{center}
+\small
+\begin{tabular}{L{0.26\textwidth} L{0.60\textwidth}}
+\toprule
+\textbf{Measure} & \textbf{Definition} \\
+\midrule
+\(\mathrm{BookedSlots}\) & slots with a booked patient at service time \\
+\addlinespace
+\(\mathrm{ServedSlots}\) & slots where the booked patient attends \\
+\addlinespace
+\(\mathrm{NoShowSlots}\) & slots where a booked patient is present on the schedule but does not attend \\
+\addlinespace
+\(\mathrm{EmptySlots}\) & slots with nobody scheduled at service time \\
+\bottomrule
+\end{tabular}
+\normalsize
+\end{center}
 
 Two utilization measures are reported:
 \[

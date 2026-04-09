@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.3.8)  9 APR 2026 09:35
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.3.8)  9 APR 2026 09:37
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -939,10 +939,10 @@ Package rerunfilecheck Info: File `first_two_class_simulation_note.out' has not
 (rerunfilecheck)             Checksum: B05A9A2AD207732F2876D99D4F4148C1;2963.
  ) 
 Here is how much of TeX's memory you used:
- 28035 strings out of 473190
- 563922 string characters out of 5715801
+ 28033 strings out of 473190
+ 563866 string characters out of 5715801
  983828 words of memory out of 5000000
- 50783 multiletter control sequences out of 15000+600000
+ 50781 multiletter control sequences out of 15000+600000
  570956 words of font info for 82 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  116i,17n,121p,594b,1047s stack positions out of 10000i,1000n,20000p,200000b,200000s
@@ -965,7 +965,7 @@ e/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmss10.pfb></usr/local/texlive
 /texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb></usr/local/texlive/
 2025/texmf-dist/fonts/type1/public/cm-super/sfrm1095.pfb>
 Output written on Documents/generated_notes/first_two_class_simulation_note.pdf
- (13 pages, 261349 bytes).
+ (13 pages, 261448 bytes).
 PDF statistics:
  316 PDF objects out of 1000 (max. 8388607)
  238 compressed objects within 3 object streams
