@@ -31,7 +31,7 @@ As of 2026-04-08, the project includes:
 - offered delay `\tau` separated from residual-delay state `r`
 - delay-sensitive balking
 - delay-sensitive no-show
-- daily pre-appointment cancellation described by `\phi_i(\tau)`
+- daily pre-appointment cancellation now formulated in the note as `\phi_i(\tau,r)`
 - FCFS policy
 - latest-available policy
 - reserved-capacity policy
@@ -59,11 +59,11 @@ The standalone review of the initial formulation note identified three document-
 
 ## Most Recent Completed Task
 
-- Updated [first_two_class_simulation_note.tex](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.tex) so cancellation is now modeled in the note as a direct daily delay-sensitive function \(\phi_i(\tau)\), instead of being induced from a fixed eventual cancellation parameter.
-- Replaced the cancellation figure and its discussion so the note now reflects the intended business intuition: longer promised delays increase daily cancellation risk, up to a class-specific cap.
+- Updated [first_two_class_simulation_note.tex](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.tex) so cancellation is now modeled in the note as a direct daily function \(\phi_i(\tau,r)\), depending both on the original promised delay and on the remaining time until the appointment.
+- Replaced the cancellation figure and its discussion so the note now reflects the intended business intuition: patients booked far in advance start more cancellation-prone, but daily cancellation risk falls as the appointment approaches.
 - Updated the implementation-notes section to state explicitly that the code still uses the older scalar cancellation parameter, so the note and the current implementation are temporarily misaligned on that one component.
 - Recompiled [first_two_class_simulation_note.pdf](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.pdf) after the cancellation-model rewrite.
-- Added an illustrative plot of the daily cancellation function \(\phi_i(\tau)\) to [first_two_class_simulation_note.tex](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.tex), directly after its definition, together with a short business interpretation of what the curve means operationally.
+- Added an illustrative plot of the daily cancellation function \(\phi_i(\tau,r)\) to [first_two_class_simulation_note.tex](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.tex), directly after its definition, together with a short business interpretation of what the surface means operationally.
 - Introduced `pgfplots` in the note so simple analytical function plots can be embedded directly in the write-up when needed.
 - Recompiled [first_two_class_simulation_note.pdf](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.pdf) after adding the cancellation-function figure.
 - Replaced the slot-based measure definitions in [first_two_class_simulation_note.tex](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.tex) with a two-column table so the performance-measure section uses the same readable format for both arrival-cohort and slot-based KPIs.

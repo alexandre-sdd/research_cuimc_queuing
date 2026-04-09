@@ -7,20 +7,20 @@
 \contentsline {subsubsection}{\numberline {2.2.1}Derived Day-Start Summary}{5}{subsubsection.2.2.1}%
 \contentsline {subsubsection}{\numberline {2.2.2}Booking-Time Delay}{5}{subsubsection.2.2.2}%
 \contentsline {subsection}{\numberline {2.3}Patient Classes and Arrival Mix}{5}{subsection.2.3}%
-\contentsline {section}{\numberline {3}Dynamics and Baseline Policy}{6}{section.3}%
-\contentsline {subsection}{\numberline {3.1}Slot-Level Event Order}{6}{subsection.3.1}%
-\contentsline {subsection}{\numberline {3.2}FCFS Baseline Policy}{7}{subsection.3.2}%
-\contentsline {section}{\numberline {4}Worked Example}{7}{section.4}%
-\contentsline {section}{\numberline {5}Performance Measures}{9}{section.5}%
-\contentsline {subsection}{\numberline {5.1}Arrival-Cohort Measures}{9}{subsection.5.1}%
-\contentsline {subsubsection}{\numberline {5.1.1}Slot-Based Measures}{10}{subsubsection.5.1.1}%
-\contentsline {section}{\numberline {6}Relation to the Literature}{10}{section.6}%
-\contentsline {subsection}{\numberline {6.1}Literature Mapping}{10}{subsection.6.1}%
-\contentsline {subsubsection}{\numberline {6.1.1}Green and Savin (2008)}{10}{subsubsection.6.1.1}%
-\contentsline {subsubsection}{\numberline {6.1.2}Liu and Ziya (2014)}{11}{subsubsection.6.1.2}%
-\contentsline {subsubsection}{\numberline {6.1.3}Liu (2015)}{11}{subsubsection.6.1.3}%
-\contentsline {subsubsection}{\numberline {6.1.4}Side-by-Side Comparison}{12}{subsubsection.6.1.4}%
-\contentsline {section}{\numberline {7}Implementation Notes and Current Limits}{12}{section.7}%
-\contentsline {subsection}{\numberline {7.1}Implementation Mapping}{12}{subsection.7.1}%
-\contentsline {subsection}{\numberline {7.2}Current Scope and Limits}{12}{subsection.7.2}%
-\contentsline {section}{\numberline {8}References}{13}{section.8}%
+\contentsline {section}{\numberline {3}Dynamics and Baseline Policy}{7}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Slot-Level Event Order}{7}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}FCFS Baseline Policy}{8}{subsection.3.2}%
+\contentsline {section}{\numberline {4}Worked Example}{8}{section.4}%
+\contentsline {section}{\numberline {5}Performance Measures}{10}{section.5}%
+\contentsline {subsection}{\numberline {5.1}Arrival-Cohort Measures}{10}{subsection.5.1}%
+\contentsline {subsubsection}{\numberline {5.1.1}Slot-Based Measures}{11}{subsubsection.5.1.1}%
+\contentsline {section}{\numberline {6}Relation to the Literature}{11}{section.6}%
+\contentsline {subsection}{\numberline {6.1}Literature Mapping}{11}{subsection.6.1}%
+\contentsline {subsubsection}{\numberline {6.1.1}Green and Savin (2008)}{11}{subsubsection.6.1.1}%
+\contentsline {subsubsection}{\numberline {6.1.2}Liu and Ziya (2014)}{12}{subsubsection.6.1.2}%
+\contentsline {subsubsection}{\numberline {6.1.3}Liu (2015)}{12}{subsubsection.6.1.3}%
+\contentsline {subsubsection}{\numberline {6.1.4}Side-by-Side Comparison}{13}{subsubsection.6.1.4}%
+\contentsline {section}{\numberline {7}Implementation Notes and Current Limits}{13}{section.7}%
+\contentsline {subsection}{\numberline {7.1}Implementation Mapping}{13}{subsection.7.1}%
+\contentsline {subsection}{\numberline {7.2}Current Scope and Limits}{13}{subsection.7.2}%
+\contentsline {section}{\numberline {8}References}{14}{section.8}%

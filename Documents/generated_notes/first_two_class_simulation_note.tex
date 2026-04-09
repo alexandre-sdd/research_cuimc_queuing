@@ -96,7 +96,7 @@ two patient classes, explicit cancellations, and a pluggable slot-allocation rul
     \item The simulator evolves at slot-sized decision epochs \(t=(D,s)\), where \(D\) is the day and \(s\) is the active slot within that day.
     \item The true state is the rolling calendar \(Y_t(r,m)\), which records the content of slot \(m\) on day offset \(r\).
     \item The derived day-start summary \(X_{i,r}^{D}\) counts how many class-\(i\) patients are scheduled for day \(D+r\) at the start of day \(D\).
-    \item Patient behavior is driven by the delay \(\tau\) seen when the slot is offered, through \(b_i(\tau)\), \(\phi_i(\tau)\), and \(\xi_i(\tau)\).
+    \item Patient behavior is driven by the delay \(\tau\) seen when the slot is offered through \(b_i(\tau)\) and \(\xi_i(\tau)\), while pre-appointment cancellation is driven by both the original delay and the current remaining delay through \(\phi_i(\tau,r)\).
     \item Demand is parameterized by total arrival rate \(\lambda\) and class-1 demand share \(p\), with \(\lambda_1=p\lambda\) and \(\lambda_2=(1-p)\lambda\).
 \end{itemize}
 \end{keybox}
@@ -222,8 +222,8 @@ small plot:
 On this graph, $D_n$ is a step process while $s_n$ increases within a day and resets to $0$ when
 the process rolls to the next day.
 
-This is the time scale on which arrivals, booking decisions, cancellations applied at the start
-of each day, and service realizations are processed.
+This is the time scale on which arrivals, booking decisions, end-of-day cancellations, and
+service realizations are processed.
 
 \subsection{State Representation}
 
@@ -260,7 +260,7 @@ Y_t(r,m)=
 
 The class index $i$ links that booked patient to the class object, written later as
 \[
-C_i = \{\lambda_i, b_i(\tau), \phi_i(\tau), \xi_i(\tau)\}.
+C_i = \{\lambda_i, b_i(\tau), \phi_i(\tau,r), \xi_i(\tau)\}.
 \]
 So the cell itself stores only the patient features that must remain attached to the appointment:
 the class identity $i$ and the original offered delay $\tau$.
@@ -268,7 +268,7 @@ The remaining class characteristics are recovered from $C_i$ when the simulator 
 \begin{itemize}[nosep]
     \item $\lambda_i$ governs future arrivals from class $i$,
     \item $b_i(\tau)$ governs booking acceptance when a class-$i$ request is offered delay $\tau$,
-    \item $\phi_i(\tau)$ governs daily pre-appointment cancellation for class-$i$ patients booked with delay $\tau$,
+    \item $\phi_i(\tau,r)$ governs daily pre-appointment cancellation for class-$i$ patients booked with delay $\tau$ and currently $r$ days away from service,
     \item $\xi_i(\tau)$ governs no-show at appointment time.
 \end{itemize}
 
@@ -327,7 +327,7 @@ Booking-time delay $\tau$ belongs to the behavioral rules.
 
 The class-specific behavior of each class $i \in \{1,2\}$ is described by
 \[
-B_i = \{b_i(\tau), \phi_i(\tau), \xi_i(\tau)\}.
+B_i = \{b_i(\tau), \phi_i(\tau,r), \xi_i(\tau)\}.
 \]
 
 In the current two-class prototype, arrivals are parameterized at the system level by
@@ -350,7 +350,7 @@ The class-specific arrival rates are then induced by
 
 Equivalently, the full class objects can still be written as
 \[
-C_i = \{\lambda_i, b_i(\tau), \phi_i(\tau), \xi_i(\tau)\},
+C_i = \{\lambda_i, b_i(\tau), \phi_i(\tau,r), \xi_i(\tau)\},
 \]
 but in the first simulation experiments the primitive demand parameters are
 $(\lambda,p)$ rather than $(\lambda_1,\lambda_2)$.
@@ -361,83 +361,104 @@ The interpretation is therefore:
     \item $p$: fraction of arrivals belonging to class 1,
     \item $\lambda_i$: implied arrival rate of class-$i$ requests per slot,
     \item $b_i(\tau)$: probability the patient declines the offered slot because the offered delay is too large,
-    \item $\phi_i(\tau)$: daily probability that a class-$i$ patient booked with original delay $\tau$ cancels at the end of a pre-appointment day,
+    \item $\phi_i(\tau,r)$: daily probability that a class-$i$ patient booked with original delay $\tau$ and currently $r$ days away cancels at the end of the day,
     \item $\xi_i(\tau)$: no-show probability at appointment time, conditional on the patient still being scheduled.
 \end{itemize}
 
+Here the cancellation object is intentionally different from balking and no-show. Balking and
+no-show depend only on the originally promised delay \(\tau\), but cancellation is allowed to
+depend both on \(\tau\) and on the residual time \(r\) remaining before the visit.
+
 In the current first version, the daily cancellation function is specified directly as a simple,
-delay-increasing object:
+two-argument object:
 \[
-\phi_i(\tau)=
+\phi_i(\tau,r)=
 \begin{cases}
-0, & \tau=0,\\[0.4em]
-\min\{a_i+b_i\tau,\phi_{i,\max}\}, & \tau\ge 1,
+0, & r=0,\\[0.4em]
+\min\{a_i+b_i\tau,\phi_{i,\max}\}\dfrac{r}{\tau}, & 1\le r \le \tau,
 \end{cases}
 \]
 where \(a_i \ge 0\), \(b_i \ge 0\), and \(\phi_{i,\max}\in[0,1]\) are class-specific parameters.
-This is deliberately simple: same-day bookings cannot pre-cancel, and longer promised delays lead to
-higher daily cancellation risk up to a class-specific cap.
+This is deliberately simple:
+\begin{itemize}[nosep]
+    \item same-day bookings cannot pre-cancel because \(r=0\),
+    \item longer promised delays increase the baseline cancellation level through \(\min\{a_i+b_i\tau,\phi_{i,\max}\}\),
+    \item for a fixed booked patient, daily cancellation risk falls as the appointment approaches because \(r/\tau\) becomes smaller over time.
+\end{itemize}
 
 \begin{examplebox}[title={Illustration of the Daily Cancellation Function}]
-The figure below shows \(\phi_i(\tau)\) for two illustrative patient classes:
+The figure below shows \(\phi_i(\tau,r)\) for two illustrative patient classes, using two booked
+delays in each class:
 \[
-\phi_1(\tau)=
+\phi_1(\tau,r)=
 \begin{cases}
-0, & \tau=0,\\
-\min\{0.01+0.008\tau,\,0.12\}, & \tau\ge 1,
+0, & r=0,\\
+\min\{0.01+0.008\tau,\,0.12\}\dfrac{r}{\tau}, & 1\le r\le \tau,
 \end{cases}
 \qquad
-\phi_2(\tau)=
+\phi_2(\tau,r)=
 \begin{cases}
-0, & \tau=0,\\
-\min\{0.02+0.012\tau,\,0.18\}, & \tau\ge 1.
+0, & r=0,\\
+\min\{0.02+0.012\tau,\,0.18\}\dfrac{r}{\tau}, & 1\le r\le \tau.
 \end{cases}
 \]
 
 \begin{center}
 \begin{tikzpicture}
 \begin{axis}[
-    width=0.82\linewidth,
-    height=5.6cm,
-    xlabel={accepted delay \(\tau\) (days)},
-    ylabel={daily cancellation probability \(\phi_i(\tau)\)},
+    width=0.46\linewidth,
+    height=5.4cm,
+    xlabel={remaining delay \(r\) (days)},
+    ylabel={daily cancellation probability},
     xmin=0,
-    xmax=15,
+    xmax=10,
     ymin=0,
-    ymax=0.32,
-    xtick={0,3,6,9,12,15},
-    ytick={0,0.05,0.10,0.15,0.20,0.25,0.30},
+    ymax=0.13,
+    xtick={0,2,4,6,8,10},
+    ytick={0,0.02,0.04,0.06,0.08,0.10,0.12},
     grid=both,
     grid style={gray!20},
     major grid style={gray!35},
+    title={class 1},
     legend style={draw=none, fill=none, at={(0.98,0.98)}, anchor=north east},
 ]
-\addplot[
-    smooth,
-    thick,
-    color=FrameBlue,
-    domain=0:15,
-    samples=200,
-] {x < 1 ? 0 : min(0.01 + 0.008*x, 0.12)};
-\addlegendentry{class 1}
-
-\addplot[
-    smooth,
-    thick,
-    color=FrameGold,
-    domain=0:15,
-    samples=200,
-] {x < 1 ? 0 : min(0.02 + 0.012*x, 0.18)};
-\addlegendentry{class 2}
+\addplot[smooth, thick, color=FrameBlue, domain=0:3, samples=100] {x <= 0 ? 0 : min(0.01 + 0.008*3, 0.12)*(x/3)};
+\addlegendentry{\(\tau=3\)}
+\addplot[smooth, thick, dashed, color=FrameBlue, domain=0:10, samples=100] {x <= 0 ? 0 : min(0.01 + 0.008*10, 0.12)*(x/10)};
+\addlegendentry{\(\tau=10\)}
+\end{axis}
+\begin{axis}[
+    at={(7.8cm,0cm)},
+    anchor=south west,
+    width=0.46\linewidth,
+    height=5.4cm,
+    xlabel={remaining delay \(r\) (days)},
+    ylabel={daily cancellation probability},
+    xmin=0,
+    xmax=10,
+    ymin=0,
+    ymax=0.19,
+    xtick={0,2,4,6,8,10},
+    ytick={0,0.03,0.06,0.09,0.12,0.15,0.18},
+    grid=both,
+    grid style={gray!20},
+    major grid style={gray!35},
+    title={class 2},
+    legend style={draw=none, fill=none, at={(0.98,0.98)}, anchor=north east},
+]
+\addplot[smooth, thick, color=FrameGold, domain=0:3, samples=100] {x <= 0 ? 0 : min(0.02 + 0.012*3, 0.18)*(x/3)};
+\addlegendentry{\(\tau=3\)}
+\addplot[smooth, thick, dashed, color=FrameGold, domain=0:10, samples=100] {x <= 0 ? 0 : min(0.02 + 0.012*10, 0.18)*(x/10)};
+\addlegendentry{\(\tau=10\)}
 \end{axis}
 \end{tikzpicture}
 \end{center}
 
 Business-wise, this function says three things:
 \begin{itemize}[nosep]
-    \item same-day bookings have no pre-appointment cancellation exposure, so \(\phi_i(0)=0\);
-    \item patients with longer waits are more likely to cancel on any given pre-appointment day, which matches the intuition that long waits create more opportunities to reschedule, recover, or drop out;
-    \item a more cancellation-prone class sits uniformly above a less cancellation-prone class and therefore creates more expected holes in the future calendar.
+    \item long promised delays make a patient more cancellation-prone overall, so the curve attached to \(\tau=10\) sits above the curve attached to \(\tau=3\);
+    \item for a fixed booked patient, the cancellation probability falls as the appointment approaches because commitment tends to increase when the visit is near;
+    \item a more cancellation-prone class still sits above a less cancellation-prone class and therefore creates more expected holes in the future calendar.
 \end{itemize}
 \end{examplebox}
 
@@ -471,13 +492,14 @@ At each active slot $(D,s)$, the simulator executes the following within-day ste
 \end{enumerate}
 
 After all $S$ slots of day $D$ have been processed, every still-scheduled future appointment
-stored as $(i,\tau)$ cancels independently with probability $\phi_i(\tau)$.
+stored as $(i,\tau)$ cancels independently with probability $\phi_i(\tau,r)$, where $r$ is that
+appointment's current residual delay on day $D$.
 Any canceled future slot is therefore reopened before day $D+1$ begins.
 This timing is operationally natural:
 \begin{itemize}[nosep]
-    \item a booking with $\tau=1$ gets exactly one chance to cancel, namely at the end of the booking day,
-    \item a booking with $\tau=2$ gets two daily cancellation opportunities before service,
-    \item because \(\phi_i(\tau)\) now increases with the promised delay, longer waits create both more cancellation opportunities and a higher daily chance of dropping out.
+    \item a booking with $\tau=1$ gets exactly one chance to cancel, namely with probability $\phi_i(1,1)$ at the end of the booking day,
+    \item a booking with $\tau=2$ gets two daily cancellation opportunities, first with probability $\phi_i(2,2)$ and then, if still scheduled, with probability $\phi_i(2,1)$,
+    \item so longer waits create both more cancellation opportunities and a larger initial cancellation hazard, while the daily hazard falls as the visit gets closer.
 \end{itemize}
 
 \subsection{FCFS Baseline Policy}
@@ -597,10 +619,11 @@ So, for example:
 
 Because the last patient belongs to class \(2\), the simulator links that slot to
 \[
-C_2=\{\lambda_2,b_2(\tau),\phi_2(\tau),\xi_2(\tau)\},
+C_2=\{\lambda_2,b_2(\tau),\phi_2(\tau,r),\xi_2(\tau)\},
 \]
 so future class-2 arrivals are generated with rate \(\lambda_2\), daily cancellation while the
-patient waits is governed by \(\phi_2(2)\), and eventual no-show is governed by \(\xi_2(2)\).
+patient waits is governed by \(\phi_2(2,2)\) today and then \(\phi_2(2,1)\) tomorrow if the
+patient is still scheduled, and eventual no-show is governed by \(\xi_2(2)\).
 
 From the same calendar, the derived day-start counts are:
 \[
@@ -621,8 +644,9 @@ Y_{(0,0)}(2,0)=(2,2)
 \]
 contributes to \(X_{2,2}^{0}\) on day \(0\), then to \(X_{2,1}^{1}\) on day \(1\) if still
 scheduled. The residual delay changes from \(r=2\) to \(r=1\), but the booking-time delay remains
-\(\tau=2\), so the same behavioral functions \(b_2(\tau)\), \(\phi_2(\tau)\), and \(\xi_2(\tau)\)
-continue to apply.
+\(\tau=2\). So balking and no-show remain tied to the original promise through \(b_2(2)\) and
+\(\xi_2(2)\), while cancellation changes over time from \(\phi_2(2,2)\) to \(\phi_2(2,1)\) as the
+appointment approaches.
 
 Finally, the calendar transfers directly into the booking equations. Suppose a new patient arrives
 just before today's 08:00 slot. Under FCFS, the earliest open slot is today's 15:00 slot. If the
@@ -826,7 +850,8 @@ The current codebase follows this notation directly:
     \item the day-start state log records the residual day offset as \texttt{residual\_delay},
     \item the current implementation still stores cancellation through the scalar field
     \texttt{cancel\_probability}, while this note now recommends moving to a direct daily
-    cancellation function \(\phi_i(\tau)\).
+    cancellation function \(\phi_i(\tau,r)\) that depends on both the originally accepted delay
+    and the remaining time until service.
 \end{itemize}
 
 This is the same split as in the mathematical formulation.
@@ -850,7 +875,7 @@ final operational recommendation when classes differ in delay sensitivity.
 The implementation is also intentionally a little richer than the minimal mathematical state. The
 calendar keeps additional audit information so logs and journals can be produced, but the key
 behavioral content still remains the pair \((i,\tau)\). The main provisional simplification is
-cancellation: mathematically the note now works with a direct daily function \(\phi_i(\tau)\),
+cancellation: mathematically the note now works with a direct daily function \(\phi_i(\tau,r)\),
 while the current code still starts from a scalar cancellation parameter and derives a daily
 hazard internally. So the state and delay notation remain aligned, but the cancellation component
 of the implementation should be updated next if the codebase is to match this revised formulation
