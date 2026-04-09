@@ -3,17 +3,24 @@ from __future__ import annotations
 import pandas as pd
 
 from appointment_simulation import (
+    BALKING_OPTIONS,
+    CANCELLATION_OPTIONS,
     ClassWindowPolicy,
     FCFSPolicy,
     LatestAvailablePolicy,
+    NO_SHOW_OPTIONS,
     PatientClassConfig,
     ReservedCapacityPolicy,
     SimulationConfig,
+    behavior_option_frame,
     behavior_profile_frame,
     bootstrap_metric_summary,
     constant_probability,
     daily_cancellation_hazard,
     green_savin_no_show,
+    make_note_config,
+    make_two_class_classes,
+    model_setup_frame,
     run_lambda_sweep,
     simulate,
     split_two_class_arrival_rates,
@@ -312,3 +319,43 @@ def test_bootstrap_metric_summary_returns_grouped_means_and_intervals() -> None:
     assert low_metric_a["replications"] == 2
     assert low_metric_a["mean"] == 2.0
     assert low_metric_a["ci_lower"] <= low_metric_a["mean"] <= low_metric_a["ci_upper"]
+
+
+def test_note_aligned_presets_build_two_realistic_classes() -> None:
+    classes = make_two_class_classes(
+        total_lambda=0.24,
+        class_1_share=0.6,
+        balking_option="step_access",
+        no_show_option="source_aligned",
+        cancellation_option="moderate",
+    )
+
+    assert len(classes) == 2
+    assert round(classes[0].arrival_rate, 3) == 0.144
+    assert round(classes[1].arrival_rate, 3) == 0.096
+    assert classes[0].label == "MRI-like diagnostic"
+    assert classes[1].label == "Behavioral-health follow-up"
+    assert 0.0 <= classes[0].balk_probability(0) <= 1.0
+    assert 0.0 <= classes[1].no_show_probability(10) <= 1.0
+
+
+def test_behavior_option_frame_and_model_setup_frame_expose_notebook_inputs() -> None:
+    option_frame = behavior_option_frame()
+    assert set(option_frame["family"]) == {"balking", "no_show", "cancellation"}
+    assert set(option_frame["option"]) >= set(BALKING_OPTIONS) | set(NO_SHOW_OPTIONS) | set(CANCELLATION_OPTIONS)
+
+    classes = make_two_class_classes()
+    setup = model_setup_frame(
+        total_lambda=0.24,
+        class_1_share=7 / 12,
+        class_configs=classes,
+        balking_option="step_access",
+        no_show_option="source_aligned",
+        cancellation_option="moderate",
+    )
+    config = make_note_config()
+
+    assert list(setup["class_id"]) == [1, 2]
+    assert "lambda_i" in setup.columns
+    assert config.horizon_days == 15
+    assert config.slots_per_day == 25

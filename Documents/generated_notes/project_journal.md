@@ -59,6 +59,11 @@ The standalone review of the initial formulation note identified three document-
 
 ## Most Recent Completed Task
 
+- Rebuilt [behavior_functions.ipynb](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Notebooks/behavior_functions.ipynb) as a note-aligned model notebook, with explicit sections for the core objects `t`, `Y_t(r,m)`, `X_{i,r}^D`, `\tau`, and the three behavior families.
+- Rebuilt [simulation.ipynb](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Notebooks/simulation.ipynb) as a clean FCFS results notebook with a baseline run, a day-start state snapshot, baseline plots, and a total-`lambda` sensitivity sweep.
+- Added [presets.py](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/appointment_simulation/presets.py) to keep the notebooks simple: it exposes two realistic options for balking, cancellation, and no-show behavior for both classes, plus compact helpers for building the two-class scenario and displaying the selected setup.
+- Extended [test_simulation.py](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/tests/test_simulation.py) so the note-aligned presets and notebook-facing summary helpers are covered by automated tests.
+- Executed both notebooks end to end with `nbconvert` and re-ran the full test suite successfully.
 - Increased the effective cell height in the colored calendar tables of [first_two_class_simulation_note.tex](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.tex) by combining a larger `\arraystretch`, a small `\extrarowheight`, and a dedicated `\calendarentry{...}` strut macro.
 - Recompiled [first_two_class_simulation_note.pdf](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.pdf) to check that the table contents no longer sit too tightly against the colored cell borders.
 - Removed paragraph indentation in [first_two_class_simulation_note.tex](/Users/alexandresepulvedadedietrich/Documents/School/Columbia/Research/Documents/generated_notes/first_two_class_simulation_note.tex) and switched the note to a small positive paragraph spacing so blocks of text remain visually distinguishable without the traditional first-line indent.

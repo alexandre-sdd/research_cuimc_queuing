@@ -14,6 +14,16 @@ from .policies import (
     LatestAvailablePolicy,
     ReservedCapacityPolicy,
 )
+from .presets import (
+    BALKING_OPTIONS,
+    CANCELLATION_OPTIONS,
+    CLASS_DETAILS,
+    NO_SHOW_OPTIONS,
+    behavior_option_frame,
+    make_note_config,
+    make_two_class_classes,
+    model_setup_frame,
+)
 from .profiles import behavior_profile_frame, effective_cancellation_probability
 from .sweeps import (
     bootstrap_metric_summary,
@@ -25,13 +35,18 @@ from .sweeps import (
 
 __all__ = [
     "AllocationPolicy",
+    "BALKING_OPTIONS",
+    "CANCELLATION_OPTIONS",
     "ClassWindowPolicy",
+    "CLASS_DETAILS",
     "FCFSPolicy",
     "LatestAvailablePolicy",
+    "NO_SHOW_OPTIONS",
     "PatientClassConfig",
     "ReservedCapacityPolicy",
     "SimulationConfig",
     "SimulationResult",
+    "behavior_option_frame",
     "behavior_profile_frame",
     "bootstrap_metric_summary",
     "constant_probability",
@@ -40,6 +55,9 @@ __all__ = [
     "exponential_no_show",
     "green_savin_no_show",
     "logistic_balking",
+    "make_note_config",
+    "make_two_class_classes",
+    "model_setup_frame",
     "replication_summary_frame",
     "run_lambda_sweep",
     "simulate",
