@@ -6,11 +6,46 @@
 \usepackage{booktabs}
 \usepackage{enumitem}
 \usepackage{hyperref}
+\usepackage[most]{tcolorbox}
 \usepackage[table]{xcolor}
 \usepackage{tikz}
 \usetikzlibrary{fit}
 
 \newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\definecolor{SoftBlue}{HTML}{EEF6FC}
+\definecolor{FrameBlue}{HTML}{2C6E91}
+\definecolor{SoftGold}{HTML}{FFF4E5}
+\definecolor{FrameGold}{HTML}{A55F00}
+
+\newtcolorbox{examplebox}[1][]{
+    enhanced,
+    breakable,
+    colback=SoftBlue,
+    colframe=FrameBlue,
+    boxrule=0.9pt,
+    arc=2pt,
+    left=8pt,
+    right=8pt,
+    top=6pt,
+    bottom=6pt,
+    title=#1,
+    fonttitle=\bfseries
+}
+
+\newtcolorbox{keybox}[1][]{
+    enhanced,
+    breakable,
+    colback=SoftGold,
+    colframe=FrameGold,
+    boxrule=0.9pt,
+    arc=2pt,
+    left=8pt,
+    right=8pt,
+    top=6pt,
+    bottom=6pt,
+    title=#1,
+    fonttitle=\bfseries
+}
 
 \title{First Two-Class Appointment Simulation: Recommended Formulation}
 \author{Alexandre SEPULVEDA de DIETRICH\\Under the supervision of Pr.~Carri Chan}
@@ -18,6 +53,9 @@
 
 \begin{document}
 \maketitle
+\setcounter{tocdepth}{2}
+\tableofcontents
+\bigskip
 
 \section{Purpose and Modeling Choice}
 
@@ -35,9 +73,12 @@ The note aligns the simulator with the queueing models in:
 \end{itemize}
 
 All three papers study the same structural mechanism:
-\begin{quote}
-more backlog $\Rightarrow$ more delay $\Rightarrow$ worse attendance $\Rightarrow$ lower effective capacity.
-\end{quote}
+\begin{keybox}[title={Core Feedback Loop}]
+\[
+\text{more backlog} \Rightarrow \text{more delay} \Rightarrow \text{worse attendance}
+\Rightarrow \text{lower effective capacity.}
+\]
+\end{keybox}
 
 The simulation keeps that mechanism, but implements it on an explicit rolling calendar with
 two patient classes, explicit cancellations, and a pluggable slot-allocation rule.
@@ -132,7 +173,7 @@ current day has exhausted all $S$ slots.
 The same evolution can be visualized as a state-transition graph:
 
 \begin{center}
-\resizebox{\textwidth}{!}{
+\resizebox{0.97\linewidth}{!}{
 \begin{tikzpicture}[
     >=stealth,
     every node/.style={font=\small},
@@ -241,11 +282,13 @@ The remaining class characteristics are recovered from $C_i$ when the simulator 
     \item $\xi_i(\tau)$ governs no-show at appointment time.
 \end{itemize}
 
+\begin{examplebox}[title={Visualizing the Rolling $H \times S$ Calendar}]
 Schematically, the rolling calendar has the following structure:
-\begin{center}
+\medskip
+\noindent\makebox[\linewidth][c]{%
 \renewcommand{\arraystretch}{1.35}
 \setlength{\tabcolsep}{7pt}
-\resizebox{\textwidth}{!}{
+\resizebox{0.95\linewidth}{!}{
 \begin{tabular}{|>{\raggedright\arraybackslash}m{2.3cm}|>{\centering\arraybackslash}m{2.0cm}|>{\centering\arraybackslash}m{2.0cm}|>{\centering\arraybackslash}m{1.5cm}|>{\centering\arraybackslash}m{2.4cm}|}
 \hline
 \rowcolor{gray!15}
@@ -260,12 +303,15 @@ Schematically, the rolling calendar has the following structure:
 \cellcolor{gray!10}\shortstack[l]{\textbf{slot $S-1$}\\($m=S-1$)} & $Y_t(0,S-1)$ & $Y_t(1,S-1)$ & $\cdots$ & $Y_t(H-1,S-1)$ \\
 \hline
 \end{tabular}
+}%
 }
-\end{center}
+\medskip
 
 So each column is a day in the rolling horizon, and each row is a slot inside that day.
 The state variable $Y_t(r,m)$ is just the content of one cell of this table.
+\end{examplebox}
 
+\begin{examplebox}[title={Example: A Realistic FCFS Appointment Book}]
 To make the notation concrete, suppose class 1 is an MRI-like diagnostic request and class 2 is a
 behavioral-health follow-up request. Suppose also that each day has four appointment times:
 08:00, 10:00, 13:00, and 15:00.
@@ -336,6 +382,7 @@ This is the minimal state representation that supports:
     \item class-specific booked-delay tracking,
     \item later policy experiments that depend on slot position.
 \end{itemize}
+\end{examplebox}
 
 \subsubsection{Derived Day-Start Summary}
 
@@ -369,6 +416,7 @@ The index $r$ is a \emph{residual delay}, not a booking-time delay.
 
 \subsection{Illustrative FCFS Calendar Example}
 
+\begin{examplebox}[title={Worked Example: From $Y_t(r,m)$ to $X_{i,r}^{D}$}]
 It is useful to see one concrete calendar snapshot and translate it directly into the state and
 equations.
 Suppose:
@@ -440,6 +488,7 @@ If the patient remains scheduled, then at the start of day $1$ the same patient 
 to $X_{2,1}^{1}$, because the \emph{residual delay} has fallen from $2$ to $1$.
 However, the patient's booking-time delay remains $\tau=2$, and that is the quantity that should
 continue to drive the behavioral functions $b_2(\tau)$, $\phi_2(\tau)$, and $\xi_2(\tau)$.
+\end{examplebox}
 
 \subsubsection{From Calendar Story to Equations}
 
@@ -486,9 +535,10 @@ If a patient arrives on day $d$ and is offered a slot on day $d+\tau$, then:
     \item $\xi_i(\tau)$ is the no-show probability used at appointment time if the patient remains scheduled.
 \end{itemize}
 
-This separation is the key modeling choice.
-Residual delay belongs to the state.
-Booking delay belongs to the behavioral rules.
+\begin{keybox}[title={Key Modeling Distinction}]
+Residual delay $r$ belongs to the state.
+Booking-time delay $\tau$ belongs to the behavioral rules.
+\end{keybox}
 
 \subsection{Patient Classes and Arrival Mix}
 
