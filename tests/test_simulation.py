@@ -221,6 +221,12 @@ def test_cancellations_happen_before_same_day_service_resolution() -> None:
     assert day_1["no_shows"] == 0
     assert day_1["empty_slots"] == 1
 
+    day_1_progression = result.daily_progression.query("measured_day == 1").set_index("step")
+    assert day_1_progression.loc["cancellations", "canceled"] == 1
+    assert day_1_progression.loc["cancellations", "scheduled_for_today"] == 0
+    assert day_1_progression.loc["no_shows", "served"] == 0
+    assert day_1_progression.loc["no_shows", "empty_slots"] == 1
+
 
 def test_fcfs_offers_earliest_future_days_only() -> None:
     result = simulate(
@@ -322,6 +328,40 @@ def test_access_metric_and_daily_journal_are_exposed() -> None:
     assert len(result.daily_journal_aggregate) == 30
     assert set(result.daily_journal_by_class["measured_day"]) == set(range(30))
     assert set(result.daily_journal_aggregate["measured_day"]) == set(range(30))
+
+
+def test_daily_progression_exposes_the_model_step_order() -> None:
+    config = SimulationConfig(
+        horizon_days=4,
+        slots_per_day=2,
+        burn_in_days=0,
+        measure_days=3,
+        cooldown_days=0,
+        rng_seed=15,
+    )
+    result = simulate(make_classes(3.0, 2.0, balk_1=0.25, balk_2=0.25), config)
+
+    expected_steps = [
+        "cancellations",
+        "arrivals",
+        "offers_and_balking",
+        "no_shows",
+        "metrics",
+        "advance",
+    ]
+    assert len(result.daily_progression) == config.measure_days * len(expected_steps)
+    for measured_day in range(config.measure_days):
+        day_steps = result.daily_progression.query("measured_day == @measured_day").sort_values("step_order")
+        assert day_steps["step"].tolist() == expected_steps
+
+    first_day = result.daily_progression.query("measured_day == 0").set_index("step")
+    assert first_day.loc["arrivals", "arrivals"] == first_day.loc["offers_and_balking", "arrivals"]
+    assert first_day.loc["offers_and_balking", "offered"] == (
+        first_day.loc["offers_and_balking", "booked"] + first_day.loc["offers_and_balking", "balked"]
+    )
+    assert first_day.loc["offers_and_balking", "open_future_slots"] <= first_day.loc["arrivals", "open_future_slots"]
+    assert first_day.loc["advance", "scheduled_for_today"] <= first_day.loc["no_shows", "future_backlog"]
+    assert first_day.loc["advance", "scheduled_total"] == first_day.loc["no_shows", "future_backlog"]
 
 
 def test_behavior_profiles_match_simulator_conventions() -> None:
@@ -475,8 +515,9 @@ def test_note_aligned_presets_build_two_realistic_classes() -> None:
     assert classes[1].label == "Behavioral-health follow-up"
     assert 0.0 <= classes[0].balk_probability(0) <= 1.0
     assert 0.0 <= classes[1].no_show_probability(10) <= 1.0
-    assert 0.0 <= classes[0].cancel_probability(8, 8) <= 1.0
-    assert classes[1].cancel_probability(8, 8) > classes[1].cancel_probability(8, 2)
+    assert classes[0].cancel_probability == CANCELLATION_OPTIONS["moderate"]["class_specs"][1]["phi"]
+    assert classes[1].cancel_probability == CANCELLATION_OPTIONS["moderate"]["class_specs"][2]["phi"]
+    assert classes[1].cancel_probability > classes[0].cancel_probability
 
 
 def test_behavior_option_frame_and_model_setup_frame_expose_notebook_inputs() -> None:
@@ -497,6 +538,6 @@ def test_behavior_option_frame_and_model_setup_frame_expose_notebook_inputs() ->
 
     assert list(setup["class_id"]) == [1, 2]
     assert "lambda_i" in setup.columns
-    assert {"phi_base_i", "phi_slope_i", "phi_cap_i"} <= set(setup.columns)
+    assert "phi_i" in setup.columns
     assert config.horizon_days == 15
     assert config.slots_per_day == 25

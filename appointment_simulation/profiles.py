@@ -26,8 +26,10 @@ def cumulative_cancellation_probability(
     Return the probability that the patient has already canceled by residual delay ``r``.
 
     This is the exact cumulative cancellation probability implied by the daily
-    hazards ``phi(tau, k)`` for ``k = tau, tau - 1, ..., 1``. It is therefore
-    based on a survival product, not a simple cumulative sum.
+    hazards used by the simulator. For the baseline scalar rule this is the
+    repeated daily probability ``phi``; for advanced experiments it can be the
+    callable ``tilde_phi(tau, k)`` for ``k = tau, tau - 1, ..., 1``. It is
+    therefore based on a survival product, not a simple cumulative sum.
     """
     if tau <= 0:
         return 0.0

@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 
 from .behaviors import CancellationFn, ProbabilityFn, clamp_probability, evaluate_cancellation_probability
-from .policies import AllocationPolicy, FCFSPolicy
+from .policies import AllocationPolicy, FCFSPolicy, SlotSelection
 
 
 MEASURED_ARRIVAL_COLUMNS = [
@@ -113,6 +113,28 @@ DAILY_JOURNAL_AGGREGATE_COLUMNS = [
     "attended_slot_utilization",
 ]
 
+DAILY_PROGRESSION_COLUMNS = [
+    "day",
+    "measured_day",
+    "step_order",
+    "step",
+    "scheduled_total",
+    "scheduled_for_today",
+    "future_backlog",
+    "open_today_slots",
+    "open_future_slots",
+    "arrivals",
+    "offered",
+    "booked",
+    "balked",
+    "no_offer",
+    "canceled",
+    "no_shows",
+    "served",
+    "empty_slots",
+    "mean_tau_booked_new_bookings",
+]
+
 
 @dataclass(frozen=True)
 class PatientClassConfig:
@@ -120,11 +142,11 @@ class PatientClassConfig:
     Behavioral and demand parameters for one patient class.
 
     The three behavior fields mirror the note:
-    ``b_i(\\tau)``, ``\\phi_i(\\tau, r)``, and ``\\xi_i(\\tau)``.
+    ``b_i(\\tau)``, scalar ``\\phi_i``, and ``\\xi_i(\\tau)``.
 
     ``arrival_rate`` is the expected number of class-i arrivals per day.
-    ``cancel_probability`` can be either a daily scalar probability or a
-    callable daily rule ``phi_i(tau, r)``.
+    ``cancel_probability`` is usually the scalar daily probability ``phi_i``.
+    A callable advanced rule ``tilde_phi_i(tau, r)`` is also supported.
     """
     class_id: int
     arrival_rate: float
@@ -216,6 +238,7 @@ class SimulationResult:
     delay_distribution_aggregate: pd.Series
     daily_journal_by_class: pd.DataFrame
     daily_journal_aggregate: pd.DataFrame
+    daily_progression: pd.DataFrame
 
 
 def _build_frame(records: list[dict[str, Any]], columns: list[str]) -> pd.DataFrame:
@@ -223,16 +246,6 @@ def _build_frame(records: list[dict[str, Any]], columns: list[str]) -> pd.DataFr
     if not records:
         return pd.DataFrame(columns=columns)
     return pd.DataFrame.from_records(records, columns=columns)
-
-
-def _combine_counts(frames: Sequence[pd.Series], fill_value: float = 0.0) -> pd.Series:
-    """Add together count series while preserving indexes across missing keys."""
-    if not frames:
-        return pd.Series(dtype=float)
-    result = frames[0].copy()
-    for series in frames[1:]:
-        result = result.add(series, fill_value=fill_value)
-    return result
 
 
 def _safe_ratio(numerator: float, denominator: float) -> float:
@@ -295,11 +308,62 @@ def simulate(
     arrival_records: list[dict[str, Any]] = []
     slot_records: list[dict[str, Any]] = []
     state_records: list[dict[str, Any]] = []
+    progression_records: list[dict[str, Any]] = []
     cohort_records: dict[int, dict[str, Any]] = {}
     next_patient_id = 1
 
-    def apply_daily_cancellations(day: int) -> None:
+    def calendar_status() -> dict[str, int]:
+        """Return aggregate state quantities for the current rolling calendar."""
+        scheduled_by_day = [sum(appointment is not None for appointment in day_slots) for day_slots in calendar]
+        scheduled_total = int(sum(scheduled_by_day))
+        scheduled_for_today = int(scheduled_by_day[0]) if scheduled_by_day else 0
+        open_today_slots = config.slots_per_day - scheduled_for_today
+        open_future_slots = sum(
+            config.slots_per_day - scheduled_count
+            for scheduled_count in scheduled_by_day[1:]
+        )
+        return {
+            "scheduled_total": scheduled_total,
+            "scheduled_for_today": scheduled_for_today,
+            "future_backlog": scheduled_total - scheduled_for_today,
+            "open_today_slots": int(open_today_slots),
+            "open_future_slots": int(open_future_slots),
+        }
+
+    def record_progression_step(
+        *,
+        day: int,
+        step_order: int,
+        step: str,
+        daily_counts: dict[str, int],
+        booked_delays: list[int],
+    ) -> None:
+        """Expose the day-level progression in the same order as the model."""
+        if not _is_measured_day(day, config):
+            return
+        progression_records.append(
+            {
+                "day": day,
+                "measured_day": _measured_day_index(day, config),
+                "step_order": step_order,
+                "step": step,
+                **calendar_status(),
+                "arrivals": daily_counts["arrivals"],
+                "offered": daily_counts["offered"],
+                "booked": daily_counts["booked"],
+                "balked": daily_counts["balked"],
+                "no_offer": daily_counts["no_offer"],
+                "canceled": daily_counts["canceled"],
+                "no_shows": daily_counts["no_shows"],
+                "served": daily_counts["served"],
+                "empty_slots": daily_counts["empty_slots"],
+                "mean_tau_booked_new_bookings": float(np.mean(booked_delays)) if booked_delays else 0.0,
+            }
+        )
+
+    def apply_daily_cancellations(day: int) -> int:
         """Release slots whose booked patient cancels at the start of the day."""
+        canceled = 0
         for day_offset, day_slots in enumerate(calendar):
             for slot_index, appointment in enumerate(day_slots):
                 if appointment is None:
@@ -319,6 +383,8 @@ def simulate(
                         cohort_record["resolution_day"] = day
                         cohort_record["resolution_slot"] = -1
                 calendar[day_offset][slot_index] = None
+                canceled += 1
+        return canceled
 
     def record_state(day: int) -> None:
         """Record the post-cancellation day-level state summary ``X_{i,r}^D``."""
@@ -344,7 +410,22 @@ def simulate(
                 }
             )
 
-    def select_future_slot(class_id: int, day: int) -> Any | None:
+    def draw_arrivals() -> list[int]:
+        """Draw daily class arrivals and randomize the within-day order."""
+        arrivals_by_class = {
+            class_config.class_id: int(rng.poisson(class_config.arrival_rate))
+            for class_config in class_configs
+        }
+        arrival_order = [
+            class_id
+            for class_id, count in arrivals_by_class.items()
+            for _ in range(count)
+        ]
+        if not arrival_order:
+            return []
+        return list(rng.permutation(arrival_order))
+
+    def select_future_slot(class_id: int, day: int) -> SlotSelection | None:
         """Ask the allocation policy for a future slot only."""
         selection = policy.select_slot(
             calendar,
@@ -356,23 +437,15 @@ def simulate(
             return None
         return selection
 
-    for day in range(config.total_days):
-        apply_daily_cancellations(day)
-        if _is_measured_day(day, config):
-            record_state(day)
-
-        arrivals_by_class = {
-            class_config.class_id: int(rng.poisson(class_config.arrival_rate))
-            for class_config in class_configs
-        }
-        arrival_order = [
-            class_id
-            for class_id, count in arrivals_by_class.items()
-            for _ in range(count)
-        ]
-        if arrival_order:
-            arrival_order = list(rng.permutation(arrival_order))
-
+    def process_arrivals(
+        *,
+        day: int,
+        arrival_order: list[int],
+        daily_counts: dict[str, int],
+        booked_delays: list[int],
+    ) -> None:
+        """Offer future slots to arrivals, simulate balking, and book acceptances."""
+        nonlocal next_patient_id
         for class_id in arrival_order:
             class_config = class_lookup[class_id]
             selection = select_future_slot(class_id, day)
@@ -383,13 +456,20 @@ def simulate(
                 tau_offered = None
                 booked = False
                 balked = False
+                daily_counts["no_offer"] += 1
             else:
+                daily_counts["offered"] += 1
                 offered_day = day + selection.day_offset
                 offered_slot = selection.slot_index
                 tau_offered = int(selection.day_offset)
                 balk_probability = clamp_probability(class_config.balk_probability(tau_offered))
                 booked = bool(rng.random() >= balk_probability)
                 balked = not booked
+                if balked:
+                    daily_counts["balked"] += 1
+                else:
+                    daily_counts["booked"] += 1
+                    booked_delays.append(tau_offered)
 
             if _is_measured_day(day, config):
                 arrival_records.append(
@@ -439,8 +519,11 @@ def simulate(
                 }
             next_patient_id += 1
 
+    def resolve_today(day: int, daily_counts: dict[str, int]) -> None:
+        """Simulate no-shows/service for the current day and clear today's slots."""
         for slot, current_appointment in enumerate(calendar[0]):
             if current_appointment is None:
+                daily_counts["empty_slots"] += 1
                 if _is_measured_day(day, config):
                     slot_records.append(
                         {
@@ -459,6 +542,7 @@ def simulate(
                 class_lookup[current_appointment.class_id].no_show_probability(current_appointment.tau_booked)
             )
             outcome = "no_show" if rng.random() < no_show_probability else "served"
+            daily_counts["no_shows" if outcome == "no_show" else "served"] += 1
             if current_appointment.tracked_cohort:
                 cohort_record = cohort_records[current_appointment.patient_id]
                 if cohort_record["outcome"] is None:
@@ -479,8 +563,82 @@ def simulate(
                 )
             calendar[0][slot] = None
 
+    def advance_day() -> None:
+        """Roll the calendar forward one day."""
         calendar.pop(0)
         calendar.append([None for _ in range(config.slots_per_day)])
+
+    for day in range(config.total_days):
+        daily_counts = {
+            "arrivals": 0,
+            "offered": 0,
+            "booked": 0,
+            "balked": 0,
+            "no_offer": 0,
+            "canceled": apply_daily_cancellations(day),
+            "no_shows": 0,
+            "served": 0,
+            "empty_slots": 0,
+        }
+        booked_delays: list[int] = []
+        if _is_measured_day(day, config):
+            record_state(day)
+        record_progression_step(
+            day=day,
+            step_order=1,
+            step="cancellations",
+            daily_counts=daily_counts,
+            booked_delays=booked_delays,
+        )
+
+        arrival_order = draw_arrivals()
+        daily_counts["arrivals"] = len(arrival_order)
+        record_progression_step(
+            day=day,
+            step_order=2,
+            step="arrivals",
+            daily_counts=daily_counts,
+            booked_delays=booked_delays,
+        )
+
+        process_arrivals(
+            day=day,
+            arrival_order=arrival_order,
+            daily_counts=daily_counts,
+            booked_delays=booked_delays,
+        )
+        record_progression_step(
+            day=day,
+            step_order=3,
+            step="offers_and_balking",
+            daily_counts=daily_counts,
+            booked_delays=booked_delays,
+        )
+
+        resolve_today(day, daily_counts)
+        record_progression_step(
+            day=day,
+            step_order=4,
+            step="no_shows",
+            daily_counts=daily_counts,
+            booked_delays=booked_delays,
+        )
+        record_progression_step(
+            day=day,
+            step_order=5,
+            step="metrics",
+            daily_counts=daily_counts,
+            booked_delays=booked_delays,
+        )
+
+        advance_day()
+        record_progression_step(
+            day=day,
+            step_order=6,
+            step="advance",
+            daily_counts=daily_counts,
+            booked_delays=booked_delays,
+        )
 
     for cohort_record in cohort_records.values():
         if cohort_record["outcome"] is None:
@@ -490,6 +648,7 @@ def simulate(
     slot_log = _build_frame(slot_records, SLOT_LOG_COLUMNS)
     cohort_log = _build_frame(list(cohort_records.values()), COHORT_COLUMNS)
     state_log = _build_frame(state_records, STATE_COLUMNS)
+    daily_progression = _build_frame(progression_records, DAILY_PROGRESSION_COLUMNS)
 
     summary_by_class = _build_summary_by_class(arrival_log, cohort_log, class_configs, config)
     summary_aggregate = _build_aggregate_summary(summary_by_class)
@@ -520,6 +679,7 @@ def simulate(
         delay_distribution_aggregate=delay_distribution_aggregate,
         daily_journal_by_class=daily_journal_by_class,
         daily_journal_aggregate=daily_journal_aggregate,
+        daily_progression=daily_progression,
     )
 
 

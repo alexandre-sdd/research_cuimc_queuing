@@ -59,14 +59,32 @@ NO_SHOW_OPTIONS: dict[str, dict[str, Any]] = {
 
 CANCELLATION_OPTIONS: dict[str, dict[str, Any]] = {
     "moderate": {
-        "description": "Moderate daily cancellation that rises with booked delay and tapers as the visit approaches.",
+        "description": "Moderate constant daily cancellation probability for each scheduled patient.",
+        "class_specs": {
+            1: {"phi": 0.01},
+            2: {"phi": 0.02},
+        },
+    },
+    "reschedule_heavy": {
+        "description": "Higher constant daily cancellation pressure.",
+        "class_specs": {
+            1: {"phi": 0.02},
+            2: {"phi": 0.03},
+        },
+    },
+}
+
+
+ADVANCED_CANCELLATION_OPTIONS: dict[str, dict[str, Any]] = {
+    "linear_taper_moderate": {
+        "description": "Advanced tilde-phi rule that rises with booked delay and tapers as the visit approaches.",
         "class_specs": {
             1: {"base": 0.01, "slope": 0.008, "ceiling": 0.12},
             2: {"base": 0.02, "slope": 0.012, "ceiling": 0.18},
         },
     },
-    "reschedule_heavy": {
-        "description": "Higher cancellation pressure, especially for patients booked far in advance.",
+    "linear_taper_heavy": {
+        "description": "Advanced tilde-phi rule with higher pressure for patients booked far in advance.",
         "class_specs": {
             1: {"base": 0.02, "slope": 0.010, "ceiling": 0.16},
             2: {"base": 0.03, "slope": 0.015, "ceiling": 0.24},
@@ -102,6 +120,11 @@ def _build_no_show_function(option_name: str, class_id: int):
 
 def _build_cancellation_function(option_name: str, class_id: int):
     spec = CANCELLATION_OPTIONS[option_name]["class_specs"][class_id]
+    return float(spec["phi"])
+
+
+def _build_advanced_cancellation_function(option_name: str, class_id: int):
+    spec = ADVANCED_CANCELLATION_OPTIONS[option_name]["class_specs"][class_id]
     return linear_taper_cancellation(
         base=float(spec["base"]),
         slope=float(spec["slope"]),
@@ -159,10 +182,7 @@ def behavior_option_frame() -> pd.DataFrame:
                     "class_id": class_id,
                     "label": CLASS_DETAILS[class_id]["label"],
                     "description": option["description"],
-                    "details": (
-                        f"base={spec['base']:.2f}, slope={spec['slope']:.3f}, "
-                        f"ceiling={spec['ceiling']:.2f}"
-                    ),
+                    "details": f"phi={spec['phi']:.2f}",
                 }
             )
 
@@ -228,9 +248,7 @@ def model_setup_frame(
                 "b_i option": balking_option,
                 "phi_i option": cancellation_option,
                 "xi_i option": no_show_option,
-                "phi_base_i": cancel_spec["base"],
-                "phi_slope_i": cancel_spec["slope"],
-                "phi_cap_i": cancel_spec["ceiling"],
+                "phi_i": cancel_spec["phi"],
             }
         )
     return pd.DataFrame.from_records(records)

@@ -18,6 +18,7 @@ from .policies import (
     ReservedCapacityPolicy,
 )
 from .presets import (
+    ADVANCED_CANCELLATION_OPTIONS,
     BALKING_OPTIONS,
     CANCELLATION_OPTIONS,
     CLASS_DETAILS,
@@ -38,6 +39,7 @@ from .sweeps import (
 
 __all__ = [
     "AllocationPolicy",
+    "ADVANCED_CANCELLATION_OPTIONS",
     "BALKING_OPTIONS",
     "CANCELLATION_OPTIONS",
     "CancellationFn",

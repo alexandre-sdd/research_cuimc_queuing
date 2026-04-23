@@ -29,7 +29,7 @@ def linear_taper_cancellation(
     ceiling: float,
 ) -> CancellationFn:
     """
-    Return a simple daily cancellation rule ``phi(tau, r)``.
+    Return the advanced daily cancellation rule ``tilde_phi(tau, r)``.
 
     The returned function increases with the original promised delay ``tau``
     through ``min(base + slope * tau, ceiling)`` and decreases as the
@@ -81,11 +81,11 @@ def evaluate_cancellation_probability(
     residual_delay: int,
 ) -> float:
     """
-    Evaluate either a direct ``phi(tau, r)`` rule or a scalar daily parameter.
+    Evaluate either scalar ``phi`` or advanced ``tilde_phi(tau, r)``.
 
-    A callable is interpreted as the direct daily cancellation rule. A numeric
-    value is treated as a constant daily cancellation probability and returned
-    directly after clipping to ``[0, 1]``.
+    A numeric value is treated as the constant daily cancellation probability
+    used by the baseline model. A callable is interpreted as the advanced daily
+    cancellation rule and returned directly after clipping to ``[0, 1]``.
     """
     if callable(cancellation_rule):
         return clamp_probability(cancellation_rule(tau, residual_delay))
