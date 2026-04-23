@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import numpy as np
 import pandas as pd
 
 from appointment_simulation import (
@@ -17,6 +18,7 @@ from appointment_simulation import (
     bootstrap_metric_summary,
     constant_probability,
     daily_cancellation_hazard,
+    evaluate_cancellation_probability,
     green_savin_no_show,
     linear_taper_cancellation,
     make_note_config,
@@ -74,8 +76,8 @@ def make_config(seed: int) -> SimulationConfig:
 def test_accounting_identities_hold_aggregate_and_by_class() -> None:
     result = simulate(
         make_classes(
-            0.22,
-            0.18,
+            5.5,
+            4.5,
             balk_1=0.10,
             balk_2=0.15,
             cancel_1=0.20,
@@ -107,17 +109,17 @@ def test_accounting_identities_hold_aggregate_and_by_class() -> None:
     assert result.summary_by_class["served"].sum() == aggregate["served"]
 
 
-def test_low_friction_regime_has_near_zero_delay_and_full_service() -> None:
-    result = simulate(make_classes(0.05, 0.04), make_config(seed=1))
+def test_low_friction_regime_books_next_day_and_has_full_service() -> None:
+    result = simulate(make_classes(1.25, 1.00), make_config(seed=1))
 
     assert result.summary_aggregate["served_per_booked"] == 1.0
-    assert result.summary_aggregate["mean_delay_booked"] < 0.10
+    assert result.summary_aggregate["mean_delay_booked"] == 1.0
     assert result.slot_summary_aggregate["booked_slot_utilization"] < 0.15
 
 
 def test_higher_arrival_rates_increase_delay_and_booked_utilization() -> None:
-    light = simulate(make_classes(0.10, 0.08), make_config(seed=1))
-    heavy = simulate(make_classes(0.30, 0.25), make_config(seed=1))
+    light = simulate(make_classes(2.50, 2.00), make_config(seed=1))
+    heavy = simulate(make_classes(15.00, 12.00), make_config(seed=1))
 
     assert heavy.summary_aggregate["mean_delay_booked"] > light.summary_aggregate["mean_delay_booked"]
     assert heavy.slot_summary_aggregate["booked_slot_utilization"] > light.slot_summary_aggregate["booked_slot_utilization"]
@@ -126,8 +128,8 @@ def test_higher_arrival_rates_increase_delay_and_booked_utilization() -> None:
 def test_more_delay_sensitive_no_show_reduces_service_fraction_and_attended_utilization() -> None:
     mild = simulate(
         make_classes(
-            0.35,
-            0.30,
+            8.75,
+            7.50,
             no_show_1=(0.02, 0.20, 6.0),
             no_show_2=(0.02, 0.20, 6.0),
         ),
@@ -135,8 +137,8 @@ def test_more_delay_sensitive_no_show_reduces_service_fraction_and_attended_util
     )
     steep = simulate(
         make_classes(
-            0.35,
-            0.30,
+            8.75,
+            7.50,
             no_show_1=(0.02, 0.60, 1.5),
             no_show_2=(0.02, 0.60, 1.5),
         ),
@@ -150,19 +152,124 @@ def test_more_delay_sensitive_no_show_reduces_service_fraction_and_attended_util
     )
 
 
-def test_cancellations_reopen_future_slots_and_same_day_bookings_never_precancel() -> None:
+def test_cancellations_reopen_future_slots_and_future_only_bookings_have_positive_delay() -> None:
     result = simulate(
-        make_classes(0.30, 0.20, cancel_1=0.40, cancel_2=0.40),
+        make_classes(20.00, 15.00, cancel_1=0.40, cancel_2=0.40),
         SimulationConfig(burn_in_days=20, measure_days=80, rng_seed=3),
     )
 
     assert result.summary_aggregate["canceled"] > 0
-    assert int(((result.cohort_log["tau_booked"] == 0) & (result.cohort_log["outcome"] == "canceled")).sum()) == 0
+    assert int((result.cohort_log["tau_booked"] == 0).sum()) == 0
     assert int(result.cohort_log[["appointment_day", "appointment_slot"]].duplicated().sum()) > 0
 
 
+def test_daily_arrivals_are_drawn_once_per_class_per_day() -> None:
+    config = SimulationConfig(
+        horizon_days=1,
+        slots_per_day=5,
+        burn_in_days=0,
+        measure_days=5,
+        cooldown_days=0,
+        rng_seed=123,
+    )
+    result = simulate(make_classes(2.0, 3.0), config)
+
+    expected_counts: list[dict[int, int]] = []
+    rng = np.random.default_rng(config.rng_seed)
+    for _ in range(config.total_days):
+        class_1_count = int(rng.poisson(2.0))
+        class_2_count = int(rng.poisson(3.0))
+        arrival_order = [1] * class_1_count + [2] * class_2_count
+        if arrival_order:
+            rng.permutation(arrival_order)
+        expected_counts.append({1: class_1_count, 2: class_2_count})
+
+    observed = (
+        result.arrival_log.groupby(["measured_day", "class_id"])
+        .size()
+        .unstack(fill_value=0)
+        .reindex(index=range(config.measure_days), columns=[1, 2], fill_value=0)
+    )
+    for measured_day, expected in enumerate(expected_counts):
+        assert int(observed.loc[measured_day, 1]) == expected[1]
+        assert int(observed.loc[measured_day, 2]) == expected[2]
+
+
+def test_scalar_cancellation_probability_is_direct_daily_probability() -> None:
+    direct = evaluate_cancellation_probability(0.36, tau=3, residual_delay=2)
+
+    assert direct == 0.36
+    assert direct != daily_cancellation_hazard(0.36, tau=3)
+
+
+def test_cancellations_happen_before_same_day_service_resolution() -> None:
+    result = simulate(
+        make_classes(10.0, 0.0, cancel_1=1.0, cancel_2=1.0),
+        SimulationConfig(
+            horizon_days=2,
+            slots_per_day=1,
+            burn_in_days=0,
+            measure_days=3,
+            cooldown_days=0,
+            rng_seed=0,
+        ),
+    )
+
+    day_1 = result.daily_journal_aggregate.loc[result.daily_journal_aggregate["measured_day"] == 1].iloc[0]
+    assert day_1["canceled"] == 1
+    assert day_1["served"] == 0
+    assert day_1["no_shows"] == 0
+    assert day_1["empty_slots"] == 1
+
+
+def test_fcfs_offers_earliest_future_days_only() -> None:
+    result = simulate(
+        make_classes(100.0, 0.0),
+        SimulationConfig(
+            horizon_days=4,
+            slots_per_day=1,
+            burn_in_days=0,
+            measure_days=1,
+            cooldown_days=0,
+            rng_seed=0,
+        ),
+    )
+
+    bookings = result.cohort_log.sort_values("patient_id")
+    assert bookings["tau_booked"].tolist() == [1, 2, 3]
+    assert bookings["appointment_day"].tolist() == [1, 2, 3]
+    assert result.summary_aggregate["no_offer"] > 0
+
+
+def test_state_log_records_all_configured_classes() -> None:
+    classes = [
+        *make_classes(0.0, 0.0),
+        PatientClassConfig(
+            3,
+            0.0,
+            constant_probability(0.0),
+            0.0,
+            exponential_no_show(0.0, 0.0, 3.0),
+            "class_3",
+        ),
+    ]
+    config = SimulationConfig(
+        horizon_days=3,
+        slots_per_day=2,
+        burn_in_days=0,
+        measure_days=2,
+        cooldown_days=0,
+        rng_seed=8,
+    )
+    result = simulate(classes, config)
+
+    assert set(result.state_log["class_id"]) == {1, 2, 3}
+    assert set(result.state_log["residual_delay"]) == {0, 1, 2}
+    assert len(result.state_log) == config.measure_days * len(classes) * config.horizon_days
+
+
 def test_alternate_policy_can_be_injected_without_engine_changes() -> None:
-    classes = make_classes(0.18, 0.12)
+    classes = make_classes(4.50, 3.00)
     config = SimulationConfig(burn_in_days=20, measure_days=60, rng_seed=9)
     fcfs = simulate(classes, config, policy=FCFSPolicy())
     latest = simulate(classes, config, policy=LatestAvailablePolicy())
@@ -181,7 +288,7 @@ def test_reserved_capacity_policy_blocks_other_classes_when_only_reserved_slots_
 
 
 def test_class_window_policy_limits_booked_delay_by_class() -> None:
-    classes = make_classes(0.35, 0.25)
+    classes = make_classes(8.75, 6.25)
     config = SimulationConfig(horizon_days=8, slots_per_day=5, burn_in_days=10, measure_days=50, rng_seed=22)
     windowed = simulate(
         classes,
@@ -198,8 +305,8 @@ def test_class_window_policy_limits_booked_delay_by_class() -> None:
 def test_access_metric_and_daily_journal_are_exposed() -> None:
     result = simulate(
         make_classes(
-            0.12,
-            0.10,
+            3.00,
+            2.50,
             balk_1=0.05,
             balk_2=0.05,
             no_show_1=(0.01, 0.30, 3.0),
@@ -219,8 +326,8 @@ def test_access_metric_and_daily_journal_are_exposed() -> None:
 
 def test_behavior_profiles_match_simulator_conventions() -> None:
     classes = make_classes(
-        0.10,
-        0.08,
+        2.50,
+        2.00,
         cancel_1=(0.01, 0.01, 0.20),
         cancel_2=(0.02, 0.02, 0.30),
         no_show_1=(0.01, 0.20, 3.0),
@@ -304,13 +411,13 @@ def test_green_savin_wrapper_matches_exponential_shape() -> None:
 
 
 def test_total_lambda_split_and_sweep_use_class_share_parameterization() -> None:
-    lambda_1, lambda_2 = split_two_class_arrival_rates(total_lambda=0.30, class_1_share=0.6)
-    assert lambda_1 == 0.18
-    assert lambda_2 == 0.12
+    lambda_1, lambda_2 = split_two_class_arrival_rates(total_lambda=30.0, class_1_share=0.6)
+    assert lambda_1 == 18.0
+    assert lambda_2 == 12.0
 
     frame = run_lambda_sweep(
-        class_configs=make_classes(0.10, 0.08),
-        total_lambdas=[0.20, 0.30],
+        class_configs=make_classes(2.50, 2.00),
+        total_lambdas=[20.0, 30.0],
         class_1_share=0.6,
         config=make_config(seed=21),
         policy=FCFSPolicy(),
@@ -318,10 +425,10 @@ def test_total_lambda_split_and_sweep_use_class_share_parameterization() -> None
         base_seed=50,
     )
 
-    assert list(frame["lambda_total"].unique()) == [0.20, 0.30]
+    assert list(frame["lambda_total"].unique()) == [20.0, 30.0]
     assert set(frame["class_1_share"]) == {0.6}
-    assert set(frame.loc[frame["lambda_total"] == 0.20, "lambda_1"].round(10)) == {0.12}
-    assert set(frame.loc[frame["lambda_total"] == 0.20, "lambda_2"].round(10)) == {0.08}
+    assert set(frame.loc[frame["lambda_total"] == 20.0, "lambda_1"].round(10)) == {12.0}
+    assert set(frame.loc[frame["lambda_total"] == 20.0, "lambda_2"].round(10)) == {8.0}
 
 
 def test_bootstrap_metric_summary_returns_grouped_means_and_intervals() -> None:
@@ -355,7 +462,6 @@ def test_bootstrap_metric_summary_returns_grouped_means_and_intervals() -> None:
 
 def test_note_aligned_presets_build_two_realistic_classes() -> None:
     classes = make_two_class_classes(
-        total_lambda=0.24,
         class_1_share=0.6,
         balking_option="step_access",
         no_show_option="source_aligned",
@@ -363,8 +469,8 @@ def test_note_aligned_presets_build_two_realistic_classes() -> None:
     )
 
     assert len(classes) == 2
-    assert round(classes[0].arrival_rate, 3) == 0.144
-    assert round(classes[1].arrival_rate, 3) == 0.096
+    assert round(classes[0].arrival_rate, 3) == 3.600
+    assert round(classes[1].arrival_rate, 3) == 2.400
     assert classes[0].label == "MRI-like diagnostic"
     assert classes[1].label == "Behavioral-health follow-up"
     assert 0.0 <= classes[0].balk_probability(0) <= 1.0
@@ -380,7 +486,7 @@ def test_behavior_option_frame_and_model_setup_frame_expose_notebook_inputs() ->
 
     classes = make_two_class_classes()
     setup = model_setup_frame(
-        total_lambda=0.24,
+        total_lambda=6.0,
         class_1_share=7 / 12,
         class_configs=classes,
         balking_option="step_access",

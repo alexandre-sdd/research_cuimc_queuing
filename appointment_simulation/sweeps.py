@@ -11,7 +11,7 @@ from .policies import AllocationPolicy
 
 
 def split_two_class_arrival_rates(total_lambda: float, class_1_share: float) -> tuple[float, float]:
-    """Split a total two-class arrival rate into class-specific rates using share ``p``."""
+    """Split a total daily two-class arrival rate into class-specific rates using share ``p``."""
     if total_lambda < 0:
         raise ValueError("total_lambda must be non-negative")
     if not 0.0 <= class_1_share <= 1.0:
@@ -133,7 +133,7 @@ def run_lambda_sweep(
     replications: int = 1,
     base_seed: int = 0,
 ) -> pd.DataFrame:
-    """Evaluate the simulator over a sweep of total arrival rates with fixed class mix ``p``."""
+    """Evaluate the simulator over a sweep of total daily arrival rates with fixed class mix ``p``."""
     class_configs = tuple(class_configs)
     if len(class_configs) < 2:
         raise ValueError("run_lambda_sweep expects at least two patient classes")

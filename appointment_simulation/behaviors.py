@@ -57,12 +57,15 @@ def daily_cancellation_hazard(cancel_probability: float, tau: int) -> float:
     """
     Convert an eventual pre-appointment cancellation probability into a daily hazard.
 
-    For a patient who booked with delay ``tau >= 1``, the simulator applies one
-    cancellation trial at the end of each pre-appointment day. This helper
-    returns the constant daily cancellation probability that yields total
-    cancellation probability ``cancel_probability`` over those ``tau`` trials.
-    Same-day bookings (``tau <= 0``) have no pre-appointment cancellation
-    opportunity and therefore a zero hazard.
+    The day-level simulator treats scalar cancellation inputs as direct daily
+    probabilities. This helper remains available for callers who want to make
+    that conversion explicitly before constructing class configs.
+
+    For a patient who booked with delay ``tau >= 1``, this helper returns the
+    constant daily cancellation probability that yields total cancellation
+    probability ``cancel_probability`` over ``tau`` independent trials.
+    Same-day bookings (``tau <= 0``) have no such conversion horizon and
+    therefore a zero hazard.
     """
     if tau <= 0:
         return 0.0
@@ -78,15 +81,15 @@ def evaluate_cancellation_probability(
     residual_delay: int,
 ) -> float:
     """
-    Evaluate either a direct ``phi(tau, r)`` rule or a legacy scalar parameter.
+    Evaluate either a direct ``phi(tau, r)`` rule or a scalar daily parameter.
 
     A callable is interpreted as the direct daily cancellation rule. A numeric
-    value is treated as the older eventual cancellation probability and mapped
-    to a constant daily hazard through ``daily_cancellation_hazard``.
+    value is treated as a constant daily cancellation probability and returned
+    directly after clipping to ``[0, 1]``.
     """
     if callable(cancellation_rule):
         return clamp_probability(cancellation_rule(tau, residual_delay))
-    return daily_cancellation_hazard(float(cancellation_rule), tau)
+    return clamp_probability(float(cancellation_rule))
 
 
 def step_balking(

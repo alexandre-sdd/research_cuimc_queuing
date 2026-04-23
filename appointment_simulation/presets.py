@@ -171,13 +171,13 @@ def behavior_option_frame() -> pd.DataFrame:
 
 def make_two_class_classes(
     *,
-    total_lambda: float = 0.24,
+    total_lambda: float = 6.0,
     class_1_share: float = 7 / 12,
     balking_option: str = "step_access",
     no_show_option: str = "source_aligned",
     cancellation_option: str = "moderate",
 ) -> tuple[PatientClassConfig, PatientClassConfig]:
-    """Build the two-class configuration used in the note-aligned notebooks."""
+    """Build the two-class daily-arrival configuration used in the notebooks."""
     if balking_option not in BALKING_OPTIONS:
         raise ValueError(f"unknown balking option: {balking_option}")
     if no_show_option not in NO_SHOW_OPTIONS:

@@ -122,9 +122,9 @@ class PatientClassConfig:
     The three behavior fields mirror the note:
     ``b_i(\\tau)``, ``\\phi_i(\\tau, r)``, and ``\\xi_i(\\tau)``.
 
-    For backward compatibility, ``cancel_probability`` may also be passed as a
-    scalar eventual cancellation probability. In that legacy case, the
-    simulator converts it into a constant daily hazard internally.
+    ``arrival_rate`` is the expected number of class-i arrivals per day.
+    ``cancel_probability`` can be either a daily scalar probability or a
+    callable daily rule ``phi_i(tau, r)``.
     """
     class_id: int
     arrival_rate: float
@@ -185,14 +185,14 @@ class Appointment:
     """
     Booked-slot record carried by the simulator.
 
-    Mathematically, the minimal slot state is ``(i, tau)``. The implementation
-    keeps extra timing fields so results can be audited, summarized, and linked
-    back to booking and service events.
+    Mathematically, the day-level state only needs class counts by residual
+    day. The implementation keeps appointment-level timing fields so results
+    can be audited, summarized, and linked back to booking and service events.
     """
     patient_id: int
     class_id: int
     booking_day: int
-    booking_slot: int
+    booking_slot: int | None
     appointment_day: int
     appointment_slot: int
     tau_booked: int
@@ -276,12 +276,12 @@ def simulate(
     policy: AllocationPolicy | None = None,
 ) -> SimulationResult:
     """
-    Run the rolling-horizon appointment-book simulation.
+    Run the day-level rolling-horizon appointment-book simulation.
 
-    The engine advances one slot at a time, generates class-specific arrivals,
-    lets the booking policy offer an eligible future slot, applies balking and
-    daily pre-appointment cancellation hazards, and resolves booked patients as
-    served or no-show at appointment time.
+    Each day applies scheduled-patient cancellations, draws class-specific
+    arrivals, offers future slots in policy order, applies balking, resolves
+    that day's no-shows/service, records measured metrics, and advances the
+    rolling calendar.
     """
     config = config or SimulationConfig()
     class_configs = _validate_class_configs(class_configs)
@@ -298,11 +298,11 @@ def simulate(
     cohort_records: dict[int, dict[str, Any]] = {}
     next_patient_id = 1
 
-    def apply_end_of_day_cancellations(day: int) -> None:
-        """Release future slots whose booked patient cancels at the end of the day."""
+    def apply_daily_cancellations(day: int) -> None:
+        """Release slots whose booked patient cancels at the start of the day."""
         for day_offset, day_slots in enumerate(calendar):
             for slot_index, appointment in enumerate(day_slots):
-                if appointment is None or appointment.appointment_day <= day:
+                if appointment is None:
                     continue
                 class_config = class_lookup[appointment.class_id]
                 cancel_hazard = evaluate_cancellation_probability(
@@ -321,9 +321,13 @@ def simulate(
                 calendar[day_offset][slot_index] = None
 
     def record_state(day: int) -> None:
-        """Record the day-start residual-delay state summary ``X_{i,r}^D``."""
+        """Record the post-cancellation day-level state summary ``X_{i,r}^D``."""
         measured_day = _measured_day_index(day, config)
-        counts = {(class_id, residual_delay): 0 for class_id in class_lookup for residual_delay in range(config.horizon_days)}
+        counts = {
+            (class_id, residual_delay): 0
+            for class_id in class_lookup
+            for residual_delay in range(config.horizon_days)
+        }
         for residual_delay, day_slots in enumerate(calendar):
             for appointment in day_slots:
                 if appointment is None:
@@ -340,89 +344,102 @@ def simulate(
                 }
             )
 
+    def select_future_slot(class_id: int, day: int) -> Any | None:
+        """Ask the allocation policy for a future slot only."""
+        selection = policy.select_slot(
+            calendar,
+            class_id,
+            day,
+            config.slots_per_day - 1,
+        )
+        if selection is None or selection.day_offset <= 0:
+            return None
+        return selection
+
     for day in range(config.total_days):
+        apply_daily_cancellations(day)
         if _is_measured_day(day, config):
             record_state(day)
-        for slot in range(config.slots_per_day):
-            arrivals_by_class = {
-                class_config.class_id: int(rng.poisson(class_config.arrival_rate))
-                for class_config in class_configs
-            }
-            arrival_order = [
-                class_id
-                for class_id, count in arrivals_by_class.items()
-                for _ in range(count)
-            ]
-            if arrival_order:
-                arrival_order = list(rng.permutation(arrival_order))
 
-            for class_id in arrival_order:
-                class_config = class_lookup[class_id]
-                selection = policy.select_slot(calendar, class_id, day, slot)
-                no_offer = selection is None
-                if no_offer:
-                    offered_day = None
-                    offered_slot = None
-                    tau_offered = None
-                    booked = False
-                    balked = False
-                else:
-                    offered_day = day + selection.day_offset
-                    offered_slot = selection.slot_index
-                    tau_offered = int(selection.day_offset)
-                    balk_probability = clamp_probability(class_config.balk_probability(tau_offered))
-                    booked = bool(rng.random() >= balk_probability)
-                    balked = not booked
+        arrivals_by_class = {
+            class_config.class_id: int(rng.poisson(class_config.arrival_rate))
+            for class_config in class_configs
+        }
+        arrival_order = [
+            class_id
+            for class_id, count in arrivals_by_class.items()
+            for _ in range(count)
+        ]
+        if arrival_order:
+            arrival_order = list(rng.permutation(arrival_order))
 
-                if _is_measured_day(day, config):
-                    arrival_records.append(
-                        {
-                            "arrival_day": day,
-                            "arrival_slot": slot,
-                            "measured_day": _measured_day_index(day, config),
-                            "class_id": class_id,
-                            "patient_id": next_patient_id if booked else None,
-                            "offered_day": offered_day,
-                            "offered_slot": offered_slot,
-                            "tau_offered": tau_offered,
-                            "booked": booked,
-                            "balked": balked,
-                            "no_offer": no_offer,
-                            "not_booked": not booked,
-                        }
-                    )
+        for class_id in arrival_order:
+            class_config = class_lookup[class_id]
+            selection = select_future_slot(class_id, day)
+            no_offer = selection is None
+            if no_offer:
+                offered_day = None
+                offered_slot = None
+                tau_offered = None
+                booked = False
+                balked = False
+            else:
+                offered_day = day + selection.day_offset
+                offered_slot = selection.slot_index
+                tau_offered = int(selection.day_offset)
+                balk_probability = clamp_probability(class_config.balk_probability(tau_offered))
+                booked = bool(rng.random() >= balk_probability)
+                balked = not booked
 
-                if not booked or selection is None:
-                    continue
-
-                appointment = Appointment(
-                    patient_id=next_patient_id,
-                    class_id=class_id,
-                    booking_day=day,
-                    booking_slot=slot,
-                    appointment_day=offered_day,
-                    appointment_slot=offered_slot,
-                    tau_booked=tau_offered,
-                    tracked_cohort=_is_measured_day(day, config),
-                )
-                calendar[selection.day_offset][selection.slot_index] = appointment
-                if appointment.tracked_cohort:
-                    cohort_records[appointment.patient_id] = {
-                        "patient_id": appointment.patient_id,
-                        "class_id": appointment.class_id,
-                        "booking_day": appointment.booking_day,
-                        "booking_slot": appointment.booking_slot,
+            if _is_measured_day(day, config):
+                arrival_records.append(
+                    {
+                        "arrival_day": day,
+                        "arrival_slot": None,
                         "measured_day": _measured_day_index(day, config),
-                        "appointment_day": appointment.appointment_day,
-                        "appointment_slot": appointment.appointment_slot,
-                        "tau_booked": appointment.tau_booked,
-                        "outcome": None,
-                        "resolution_day": None,
-                        "resolution_slot": None,
+                        "class_id": class_id,
+                        "patient_id": next_patient_id if booked else None,
+                        "offered_day": offered_day,
+                        "offered_slot": offered_slot,
+                        "tau_offered": tau_offered,
+                        "booked": booked,
+                        "balked": balked,
+                        "no_offer": no_offer,
+                        "not_booked": not booked,
                     }
-                next_patient_id += 1
+                )
 
-            current_appointment = calendar[0][slot]
+            if not booked or selection is None:
+                continue
+
+            appointment = Appointment(
+                patient_id=next_patient_id,
+                class_id=class_id,
+                booking_day=day,
+                booking_slot=None,
+                appointment_day=offered_day,
+                appointment_slot=offered_slot,
+                tau_booked=tau_offered,
+                tracked_cohort=_is_measured_day(day, config),
+            )
+            calendar[selection.day_offset][selection.slot_index] = appointment
+            if appointment.tracked_cohort:
+                cohort_records[appointment.patient_id] = {
+                    "patient_id": appointment.patient_id,
+                    "class_id": appointment.class_id,
+                    "booking_day": appointment.booking_day,
+                    "booking_slot": appointment.booking_slot,
+                    "measured_day": _measured_day_index(day, config),
+                    "appointment_day": appointment.appointment_day,
+                    "appointment_slot": appointment.appointment_slot,
+                    "tau_booked": appointment.tau_booked,
+                    "outcome": None,
+                    "resolution_day": None,
+                    "resolution_slot": None,
+                }
+            next_patient_id += 1
+
+        for slot, current_appointment in enumerate(calendar[0]):
             if current_appointment is None:
                 if _is_measured_day(day, config):
                     slot_records.append(
@@ -462,7 +479,6 @@ def simulate(
                 )
             calendar[0][slot] = None
 
-        apply_end_of_day_cancellations(day)
         calendar.pop(0)
         calendar.append([None for _ in range(config.slots_per_day)])
 
