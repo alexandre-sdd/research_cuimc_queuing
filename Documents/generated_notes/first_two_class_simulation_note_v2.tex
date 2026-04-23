@@ -79,11 +79,13 @@
 
 \begin{document}
 \maketitle
-\setcounter{tocdepth}{2}
+\setcounter{tocdepth}{3}
 \tableofcontents
 \bigskip
 
-\section{Purpose and Reader Map}
+\section{Introduction}
+
+\subsection{Purpose and Reader Map}
 
 This v2 note is the day-level replacement for the earlier slot-level formulation. The earlier
 note remains useful because it showed the model through concrete pictures: a time-evolution graph,
@@ -96,7 +98,7 @@ scheduled on each residual day. The code may keep internal slot positions to enf
 audit utilization, but slot position \(m\) is no longer a model state variable.
 \end{keybox}
 
-\subsection{What Changed from the Previous Note}
+\subsubsection{What Changed from the Previous Note}
 
 The table below records what the old note used to help a reader understand the simulator and the
 equivalent object in the day-level formulation.
@@ -123,7 +125,9 @@ Metric tables & how logs map to access and utilization measures & same metrics, 
 \normalsize
 \end{center}
 
-\section{Model at a Glance}
+\section{Model Formulation}
+
+\subsection{Model at a Glance}
 
 The simulator keeps the same operational feedback loop as the earlier model and the motivating
 appointment-queueing literature.
@@ -157,7 +161,7 @@ Residual delay \(r\) belongs to the day-level state and decreases as days pass. 
 no-show behavior may depend on the delay the patient accepted.
 \end{keybox}
 
-\section{Day-Level State}
+\subsection{Day-Level State}
 
 At the start of day \(D\), after the daily cancellation step and before processing new arrivals,
 define
@@ -185,7 +189,7 @@ Slot positions inside a day are not part of \(X^D\). The implementation still ke
 list of \(S\) slots per day so it can find open capacity, produce service-slot logs, and compute
 empty-slot utilization. That internal detail is an audit layer, not the mathematical state.
 
-\subsection{Patient Audit Record}
+\subsubsection{Patient Audit Record}
 
 When a class-\(i\) patient accepts an offer with delay \(\tau\), the state count is incremented on
 the selected residual day, and the implementation also stores a patient audit record
@@ -202,7 +206,7 @@ The audit record is needed because:
     \item cohort logs and delay metrics need the originally offered delay.
 \end{itemize}
 
-\section{Patient Classes and Behavior}
+\subsection{Patient Classes and Behavior}
 
 Each class is described by
 \[
@@ -242,7 +246,7 @@ For two-class experiments, demand can also be parameterized by total daily arriv
 \lambda_2=(1-p)\lambda.
 \]
 
-\subsection{Working Behavior Profile}
+\subsubsection{Working Behavior Profile}
 
 The first FCFS experiments use a concrete two-class profile. The numbers below are not required by
 the model, but they make the figures and examples reproducible.
@@ -265,7 +269,7 @@ Cancellation & scalar \(\phi_1=0.01\) in the baseline; advanced \(\tilde{\phi}_1
 \normalsize
 \end{center}
 
-\subsection{Balking Function}
+\subsubsection{Balking Function}
 
 In the current FCFS baseline, balking is represented with a step function of the offered delay.
 This is intentionally simple: patients are fairly willing to accept appointments below a practical
@@ -325,7 +329,7 @@ decline the offer. This is the access-side version of the same delay feedback lo
 literature usually models through no-show behavior.
 \end{examplebox}
 
-\subsection{No-Show Function}
+\subsubsection{No-Show Function}
 
 No-show behavior uses the original accepted delay \(\tau\), not the residual delay \(r\) on a later
 day. In the current FCFS baseline, no-show is represented with a step function, just like balking:
@@ -461,7 +465,9 @@ of the advanced \(\tilde{\phi}_i(\tau,r)\) rule, where risk can vary with both t
 and the residual delay.
 \end{examplebox}
 
-\section{Daily Simulation Order}
+\section{Simulation Mechanics}
+
+\subsection{Daily Simulation Order}
 
 The simulator advances one day at a time. For each day \(D\), it executes the following steps in
 this exact order.
@@ -515,7 +521,9 @@ today, baseline FCFS searches only \(r=1,\dots,H-1\). Same-day holes therefore a
 empty-slot metrics, not today's new offers.
 \end{keybox}
 
-\section{Day-Level Calendar Picture}
+\subsection{Calendar and Booking Logic}
+
+\subsubsection{Day-Level Calendar Picture}
 
 The old note used an \(H\times S\) slot calendar to show exactly where patients sat. The day-level
 model uses the same rolling calendar concept, but it displays counts by class and residual day.
@@ -550,7 +558,7 @@ The current day \(r=0\) has one open slot, but it is not bookable by new arrival
 FCFS is day \(D+2\), with \(\tau=2\).
 \end{examplebox}
 
-\section{FCFS Booking Rule}
+\subsubsection{FCFS Booking Rule}
 
 For a new arrival on day \(D\), the baseline policy searches
 \[
@@ -565,7 +573,7 @@ If no such day exists, the patient receives no offer. If the patient accepts, th
 increments \(X_{i,r}^{D}\) and stores the patient's original delay as \(\tau=r\). If the patient
 balks, \(X_{i,r}^{D}\) is not changed and the capacity remains available to later arrivals.
 
-\section{Worked Day-Level Example}
+\subsection{Worked Day-Level Example}
 
 This example is the day-level counterpart of the previous note's FCFS appointment-book example.
 It shows the state, the patient audit record, the booking decision, the no-show/service step, and
@@ -662,7 +670,9 @@ This table is not a second model. It is an audit view of the model order. It exi
 verify that the simulator is progressing exactly one day at a time.
 \end{examplebox}
 
-\section{Performance Measures}
+\section{Outputs and Code Mapping}
+
+\subsection{Performance Measures}
 
 For patients arriving during the measured window, the simulator reports:
 \begin{center}
@@ -711,7 +721,7 @@ For measured service days, daily capacity is still \(S\). Slot utilization is th
 \frac{\mathrm{served\ slots}}{S\times\mathrm{measured\ days}}.
 \]
 
-\section{Implementation Mapping}
+\subsection{Implementation Mapping}
 
 The code follows this day-level formulation:
 \begin{itemize}[nosep]
@@ -735,7 +745,9 @@ The code follows this day-level formulation:
 \end{itemize}
 \end{reviewbox}
 
-\section{Relation to the Literature}
+\section{Literature and Scope}
+
+\subsection{Relation to the Literature}
 
 Green and Savin (2008), Liu and Ziya (2014), and Liu (2015) use stylized queue, backlog, or window
 states to study delay-sensitive attendance and appointment access. The day-level simulator is a
@@ -743,7 +755,7 @@ calendar version of the same mechanism. The state \(X_{i,r}^{D}\) records the fu
 class and residual day; the offered delay \(\tau\) is the calendar analog of the congestion seen by
 the patient at booking.
 
-\subsection{Common Mechanism}
+\subsubsection{Common Mechanism}
 
 The analytical papers usually compress the appointment book into one congestion variable, such as
 queue length, backlog, or the number of appointments already ahead of a new patient. This note keeps
@@ -770,7 +782,7 @@ state that determines the delay seen at booking. In v2, \(X^D\) is that state, a
 into the offered delay \(\tau\).
 \end{keybox}
 
-\subsection{Green and Savin (2008)}
+\subsubsection{Green and Savin (2008)}
 
 Green and Savin study an appointment queue in which no-show behavior worsens with the backlog seen
 when the appointment is made. Their no-show curve is an exponential-saturation function of a
@@ -797,7 +809,7 @@ The simplification in v2 is that time advances by day rather than by individual 
 is acceptable for the first simulator because the central feedback loop depends on appointment
 delay in days, not on the exact within-day slot where the appointment sits.
 
-\subsection{Liu and Ziya (2014)}
+\subsubsection{Liu and Ziya (2014)}
 
 Liu and Ziya analyze panel size and overbooking decisions under patient no-shows. Their state is
 more stylized than a rolling calendar, but the core tradeoff is the same: more demand can increase
@@ -816,7 +828,7 @@ The mapping is:
     \item their overbooking decision is not active in the v2 FCFS baseline.
 \end{itemize}
 
-\subsection{Liu (2015)}
+\subsubsection{Liu (2015)}
 
 Liu studies the optimal appointment scheduling window under delay-dependent no-shows. The model's
 window size limits how far into the future appointments may be scheduled. In v2, the rolling
@@ -841,7 +853,7 @@ The mapping is:
     \item optimizing \(H\) is a later experiment, not part of the current FCFS-only baseline.
 \end{itemize}
 
-\subsection{Why Only FCFS Here}
+\subsubsection{Why Only FCFS Here}
 
 The old codebase already supports alternative slot-selection policies, but this note deliberately
 keeps the analysis focused on FCFS. That is the cleanest first experiment because it isolates the
