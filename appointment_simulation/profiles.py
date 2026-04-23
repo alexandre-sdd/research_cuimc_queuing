@@ -13,7 +13,9 @@ def effective_cancellation_probability(
     tau: int,
     residual_delay: int,
 ) -> float:
-    """Return the daily cancellation probability used by the simulator."""
+    """Return the simulator's daily cancellation probability for the given residual delay."""
+    if tau <= 0 or residual_delay <= 0:
+        return 0.0
     return evaluate_cancellation_probability(class_config.cancel_probability, tau, residual_delay)
 
 

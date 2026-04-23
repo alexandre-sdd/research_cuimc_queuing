@@ -204,7 +204,7 @@ def test_scalar_cancellation_probability_is_direct_daily_probability() -> None:
     assert direct != daily_cancellation_hazard(0.36, tau=3)
 
 
-def test_cancellations_happen_before_same_day_service_resolution() -> None:
+def test_cancellations_skip_same_day_appointments_before_service_resolution() -> None:
     result = simulate(
         make_classes(10.0, 0.0, cancel_1=1.0, cancel_2=1.0),
         SimulationConfig(
@@ -218,16 +218,16 @@ def test_cancellations_happen_before_same_day_service_resolution() -> None:
     )
 
     day_1 = result.daily_journal_aggregate.loc[result.daily_journal_aggregate["measured_day"] == 1].iloc[0]
-    assert day_1["canceled"] == 1
-    assert day_1["served"] == 0
+    assert day_1["canceled"] == 0
+    assert day_1["served"] == 1
     assert day_1["no_shows"] == 0
-    assert day_1["empty_slots"] == 1
+    assert day_1["empty_slots"] == 0
 
     day_1_progression = result.daily_progression.query("measured_day == 1").set_index("step")
-    assert day_1_progression.loc["cancellations", "canceled"] == 1
-    assert day_1_progression.loc["cancellations", "scheduled_for_today"] == 0
-    assert day_1_progression.loc["no_shows", "served"] == 0
-    assert day_1_progression.loc["no_shows", "empty_slots"] == 1
+    assert day_1_progression.loc["cancellations", "canceled"] == 0
+    assert day_1_progression.loc["cancellations", "scheduled_for_today"] == 1
+    assert day_1_progression.loc["no_shows", "served"] == 1
+    assert day_1_progression.loc["no_shows", "empty_slots"] == 0
 
 
 def test_fcfs_offers_earliest_future_days_only() -> None:
@@ -296,7 +296,7 @@ def test_reserved_capacity_policy_blocks_other_classes_when_only_reserved_slots_
 
 
 def test_class_window_policy_limits_booked_delay_by_class() -> None:
-    classes = make_classes(8.75, 6.25)
+    classes = make_classes(6.0, 4.0)
     config = SimulationConfig(horizon_days=8, slots_per_day=5, burn_in_days=10, measure_days=50, rng_seed=22)
     windowed = simulate(
         classes,
@@ -416,6 +416,26 @@ def test_behavior_profiles_match_simulator_conventions() -> None:
     ].drop_duplicates()
     assert len(repeated_profile) == 1
 
+    scalar_frame = behavior_profile_frame(make_classes(1.0, 0.0, cancel_1=0.25)[:1], horizon_days=3)
+    assert (
+        scalar_frame.loc[
+            (scalar_frame["class_id"] == 1)
+            & (scalar_frame["tau_booked"] == 2)
+            & (scalar_frame["residual_delay"] == 0),
+            "daily_cancel_probability",
+        ].iloc[0]
+        == 0.0
+    )
+    assert (
+        scalar_frame.loc[
+            (scalar_frame["class_id"] == 1)
+            & (scalar_frame["tau_booked"] == 2)
+            & (scalar_frame["residual_delay"] == 1),
+            "daily_cancel_probability",
+        ].iloc[0]
+        == 0.25
+    )
+
 
 def test_daily_cancellation_hazard_matches_eventual_phi_over_tau_days() -> None:
     hazard = daily_cancellation_hazard(0.36, tau=3)
@@ -519,8 +539,8 @@ def test_note_aligned_presets_build_two_realistic_classes() -> None:
     )
 
     assert len(classes) == 2
-    assert round(classes[0].arrival_rate, 3) == 3.600
-    assert round(classes[1].arrival_rate, 3) == 2.400
+    assert round(classes[0].arrival_rate, 3) == 14.400
+    assert round(classes[1].arrival_rate, 3) == 9.600
     assert classes[0].label == "MRI-like diagnostic"
     assert classes[1].label == "Behavioral-health follow-up"
     assert 0.0 <= classes[0].balk_probability(0) <= 1.0
@@ -542,7 +562,7 @@ def test_behavior_option_frame_and_model_setup_frame_expose_notebook_inputs() ->
 
     classes = make_two_class_classes()
     setup = model_setup_frame(
-        total_lambda=6.0,
+        total_lambda=24.0,
         class_1_share=7 / 12,
         class_configs=classes,
         balking_option="step_access",

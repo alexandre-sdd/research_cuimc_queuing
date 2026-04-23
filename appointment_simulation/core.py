@@ -145,8 +145,9 @@ class PatientClassConfig:
     ``b_i(\\tau)``, scalar ``\\phi_i``, and baseline ``\\xi_i(\\tau)``.
 
     ``arrival_rate`` is the expected number of class-i arrivals per day.
-    ``cancel_probability`` is usually the scalar daily probability ``phi_i``.
-    A callable advanced rule ``tilde_phi_i(tau, r)`` is also supported.
+    ``cancel_probability`` is usually the scalar daily probability ``phi_i``
+    applied to future appointments only. A callable advanced rule
+    ``tilde_phi_i(tau, r)`` is also supported.
     ``no_show_probability`` usually represents the baseline step ``xi_i(tau)``,
     though advanced ``tilde_xi_i(tau)`` rules are also valid callables.
     """
@@ -293,7 +294,7 @@ def simulate(
     """
     Run the day-level rolling-horizon appointment-book simulation.
 
-    Each day applies scheduled-patient cancellations, draws class-specific
+    Each day applies future-appointment cancellations, draws class-specific
     arrivals, offers future slots in policy order, applies balking, resolves
     that day's no-shows/service, records measured metrics, and advances the
     rolling calendar.
@@ -364,9 +365,9 @@ def simulate(
         )
 
     def apply_daily_cancellations(day: int) -> int:
-        """Release slots whose booked patient cancels at the start of the day."""
+        """Release future slots whose booked patient cancels at the start of the day."""
         canceled = 0
-        for day_offset, day_slots in enumerate(calendar):
+        for day_offset, day_slots in enumerate(calendar[1:], start=1):
             for slot_index, appointment in enumerate(day_slots):
                 if appointment is None:
                     continue

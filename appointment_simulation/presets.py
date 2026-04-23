@@ -232,7 +232,7 @@ def behavior_option_frame() -> pd.DataFrame:
 
 def make_two_class_classes(
     *,
-    total_lambda: float = 6.0,
+    total_lambda: float = 24.0,
     class_1_share: float = 7 / 12,
     balking_option: str = "step_access",
     no_show_option: str = "step_access",
