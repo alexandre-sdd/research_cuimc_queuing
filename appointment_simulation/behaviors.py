@@ -111,6 +111,25 @@ def step_balking(
     return fn
 
 
+def step_no_show(
+    threshold: int,
+    low_delay_probability: float = 0.0,
+    high_delay_probability: float = 1.0,
+) -> ProbabilityFn:
+    """Return the baseline step no-show rule ``xi(tau)``."""
+    low_delay_probability = clamp_probability(low_delay_probability)
+    high_delay_probability = clamp_probability(high_delay_probability)
+    if threshold < 0:
+        raise ValueError("threshold must be non-negative")
+
+    def fn(tau: int) -> float:
+        if tau < threshold:
+            return low_delay_probability
+        return high_delay_probability
+
+    return fn
+
+
 def logistic_balking(
     midpoint: float,
     slope: float,
@@ -135,7 +154,7 @@ def exponential_no_show(
     maximum: float,
     scale: float,
 ) -> ProbabilityFn:
-    """Return an increasing no-show curve that saturates exponentially with delay."""
+    """Return the advanced no-show rule ``tilde_xi(tau)`` with exponential saturation."""
     base = clamp_probability(base)
     maximum = clamp_probability(maximum)
     if maximum < base:
@@ -154,5 +173,5 @@ def green_savin_no_show(
     gamma_max: float,
     sensitivity: float,
 ) -> ProbabilityFn:
-    """Return the Green-Savin exponential-saturation no-show specification."""
+    """Return the advanced Green-Savin-style ``tilde_xi(tau)`` specification."""
     return exponential_no_show(base=gamma_0, maximum=gamma_max, scale=sensitivity)

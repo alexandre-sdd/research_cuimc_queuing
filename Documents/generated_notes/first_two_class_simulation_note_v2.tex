@@ -113,7 +113,7 @@ Slot calendar \(Y_t(r,m)\) & where each booked appointment sat in the rolling ca
 \addlinespace
 Colored \(H\times S\) appointment book & how FCFS filled slots and how holes appeared & colored residual-day table showing total load, open capacity, and future-only offers \\
 \addlinespace
-Cancellation plot \(\phi_i\) and \(\tilde{\phi}_i(\tau,r)\) & how the baseline daily cancellation probability differs from the older delay/residual-delay function & scalar daily cancellation \(\phi_i\) as the baseline, with advanced \(\tilde{\phi}_i(\tau,r)\) mentioned but not used yet \\
+No-show and cancellation plots & how baseline step rules differ from the smoother legacy delay-sensitive functions & baseline \(\xi_i(\tau)\) and \(\phi_i\) in solid lines, with advanced \(\tilde{\xi}_i(\tau)\) and \(\tilde{\phi}_i(\tau,r)\) shown as dashed later options \\
 \addlinespace
 Worked FCFS example & how a request becomes an offer, booking, balk, no-show, or service & day-level progression example with cancellations, arrivals, offers, balking, service, metrics, and calendar advance \\
 \addlinespace
@@ -196,7 +196,8 @@ the selected residual day, and the implementation also stores a patient audit re
 The audit record is needed because:
 \begin{itemize}[nosep]
     \item \(b_i(\tau)\) determines balking when the offer is made;
-    \item \(\xi_i(\tau)\) determines no-show at appointment time;
+    \item baseline \(\xi_i(\tau)\) determines no-show at appointment time;
+    \item advanced no-show experiments may instead use \(\tilde{\xi}_i(\tau)\);
     \item optional advanced cancellation functions may use \(\tilde{\phi}_i(\tau,r)\);
     \item cohort logs and delay metrics need the originally offered delay.
 \end{itemize}
@@ -222,7 +223,9 @@ C_i=\{\lambda_i,b_i(\tau),\phi_i,\xi_i(\tau)\}.
 \addlinespace
 \(\tilde{\phi}_i(\tau,r)\) & advanced daily cancellation rule using original delay and residual delay; not used in the baseline FCFS analysis \\
 \addlinespace
-\(\xi_i(\tau)\) & no-show probability at appointment time if the patient has not canceled \\
+\(\xi_i(\tau)\) & baseline step no-show probability at appointment time if the patient has not canceled \\
+\addlinespace
+\(\tilde{\xi}_i(\tau)\) & advanced delay-sensitive no-show rule; not used in the baseline FCFS analysis \\
 \bottomrule
 \end{tabular}
 \normalsize
@@ -254,7 +257,7 @@ Daily demand & \(\lambda_1=3.5\) when \(\lambda=6.0\) and \(p=7/12\) & \(\lambda
 \addlinespace
 Balking & low until a 21-day access threshold, then high & low until a 14-day access threshold, then high \\
 \addlinespace
-No-show & Green-Savin style exponential curve with low baseline and slow delay sensitivity & higher baseline and stronger delay sensitivity \\
+No-show & step \(\xi_1(\tau)\): 0.01 before 21 days, 0.31 from 21 days onward; dashed \(\tilde{\xi}_1(\tau)\) reserved for later & step \(\xi_2(\tau)\): 0.15 before 14 days, 0.51 from 14 days onward; dashed \(\tilde{\xi}_2(\tau)\) reserved for later \\
 \addlinespace
 Cancellation & scalar \(\phi_1=0.01\) in the baseline; advanced \(\tilde{\phi}_1(\tau,r)\) is reserved for later experiments & scalar \(\phi_2=0.02\) in the baseline; advanced \(\tilde{\phi}_2(\tau,r)\) is reserved for later experiments \\
 \bottomrule
@@ -325,30 +328,45 @@ literature usually models through no-show behavior.
 \subsection{No-Show Function}
 
 No-show behavior uses the original accepted delay \(\tau\), not the residual delay \(r\) on a later
-day. The current source-aligned profile uses the Green-Savin exponential-saturation form:
+day. In the current FCFS baseline, no-show is represented with a step function, just like balking:
 \[
-\xi_i(\tau)
+\xi_1(\tau)=
+\begin{cases}
+0.01, & \tau<21,\\
+0.31, & \tau\ge 21,
+\end{cases}
+\qquad
+\xi_2(\tau)=
+\begin{cases}
+0.15, & \tau<14,\\
+0.51, & \tau\ge 14.
+\end{cases}
+\]
+
+The earlier Green-Savin style delay-sensitive curve is still useful as an advanced option for later
+experiments. In this note it is written as
+\[
+\tilde{\xi}_i(\tau)
 =
 \gamma_{i,\max}
 -
 (\gamma_{i,\max}-\gamma_{i,0})e^{-\tau/s_i}.
 \]
-
-The illustrative parameters are
+For the same illustrative values,
 \[
 (\gamma_{1,0},\gamma_{1,\max},s_1)=(0.01,0.31,50),
 \qquad
 (\gamma_{2,0},\gamma_{2,\max},s_2)=(0.15,0.51,9).
 \]
 
-\begin{examplebox}[title={Delay-Sensitive No-Show Curves}, breakable=false]
+\begin{examplebox}[title={Baseline Step No-Show and Advanced \texorpdfstring{$\tilde{\xi}$}{xi-tilde}}, breakable=false]
 \begin{center}
 \begin{tikzpicture}
 \begin{axis}[
     width=0.84\linewidth,
     height=6.0cm,
     xlabel={accepted delay \(\tau\) in days},
-    ylabel={no-show probability \(\xi_i(\tau)\)},
+    ylabel={no-show probability},
     xmin=0,
     xmax=30,
     ymin=0,
@@ -362,17 +380,28 @@ The illustrative parameters are
     major grid style={gray!35},
     legend style={draw=none, fill=none, at={(0.02,0.98)}, anchor=north west},
 ]
-\addplot[smooth, thick, color=FrameBlue, domain=0:30, samples=120] {0.31 - (0.31 - 0.01)*exp(-x/50)};
-\addlegendentry{class 1}
-\addplot[smooth, thick, color=FrameGold, domain=0:30, samples=120] {0.51 - (0.51 - 0.15)*exp(-x/9)};
-\addlegendentry{class 2}
+\addplot[thick, color=FrameBlue, domain=0:21, samples=2] {0.01};
+\addlegendentry{baseline \(\xi_1\)}
+\addplot[thick, color=FrameBlue, domain=21:30, samples=2] {0.31};
+\addplot[densely dashed, color=FrameBlue] coordinates {(21,0.01) (21,0.31)};
+
+\addplot[thick, color=FrameGold, domain=0:14, samples=2] {0.15};
+\addlegendentry{baseline \(\xi_2\)}
+\addplot[thick, color=FrameGold, domain=14:30, samples=2] {0.51};
+\addplot[densely dashed, color=FrameGold] coordinates {(14,0.15) (14,0.51)};
+
+\addplot[smooth, thick, dashed, color=FrameBlue, domain=0:30, samples=120] {0.31 - (0.31 - 0.01)*exp(-x/50)};
+\addlegendentry{advanced \(\tilde{\xi}_1\)}
+\addplot[smooth, thick, dashed, color=FrameGold, domain=0:30, samples=120] {0.51 - (0.51 - 0.15)*exp(-x/9)};
+\addlegendentry{advanced \(\tilde{\xi}_2\)}
 \end{axis}
 \end{tikzpicture}
 \end{center}
 
-Class 2 starts at a higher no-show probability and reacts more strongly to delay. This gives the
-two-class model a reason to track class counts separately even when FCFS is the only allocation
-rule currently being analyzed.
+The solid curves are the implemented baseline. They make the daily progression easier to read:
+patients who accepted a short delay behave one way, and patients who accepted a longer delay behave
+another way. The dashed curves show the smoother advanced \(\tilde{\xi}_i(\tau)\) option, which is
+closer to Green-Savin style delay sensitivity and remains available for later experiments.
 \end{examplebox}
 
 \begin{examplebox}[title={Cancellation Probability Figure: Baseline and Advanced Rule}]
@@ -446,7 +475,7 @@ this exact order.
     where \(M_i^D\) is the number of class-\(i\) arrivals on day \(D\).
     \item \textbf{Offer future days in FCFS order.} Arrivals are processed sequentially in randomized within-day order. The baseline policy offers the earliest future day \(D+r\), \(r\in\{1,\dots,H-1\}\), with open capacity.
     \item \textbf{Simulate balking.} A class-\(i\) patient offered delay \(\tau=r\) accepts with probability \(1-b_i(\tau)\). If the patient balks, the capacity remains open for later arrivals.
-    \item \textbf{Simulate no-shows and service for day \(D\).} Each remaining appointment scheduled for \(D\) no-shows with probability \(\xi_i(\tau)\), using its stored original delay.
+    \item \textbf{Simulate no-shows and service for day \(D\).} Each remaining appointment scheduled for \(D\) no-shows with baseline probability \(\xi_i(\tau)\), using its stored original delay.
     \item \textbf{Compute metrics for day \(D\).} The simulator records access, booking, cancellation, service, empty-slot, utilization, and delay metrics.
     \item \textbf{Advance to day \(D+1\).} The current day is removed, residual delays decrease by one, and a new empty future day is appended.
 \end{enumerate}
@@ -730,9 +759,10 @@ Under FCFS, this state implies the offered delay
 \]
 when such an \(r\) exists. Thus \(\tau\) is the bridge between the calendar model and the queueing
 literature. A larger backlog pushes the first feasible \(r\) farther into the future, and that
-larger \(\tau\) then enters \(b_i(\tau)\) and \(\xi_i(\tau)\). In the baseline, cancellation is
-the scalar daily probability \(\phi_i\). In later experiments, cancellation can be replaced by the
-advanced rule \(\tilde{\phi}_i(\tau,r)\).
+larger \(\tau\) then enters \(b_i(\tau)\) and the baseline step no-show rule \(\xi_i(\tau)\). In
+later experiments, the smoother advanced rule \(\tilde{\xi}_i(\tau)\) can be used instead. In the
+baseline, cancellation is the scalar daily probability \(\phi_i\). Later experiments can replace it
+with the advanced rule \(\tilde{\phi}_i(\tau,r)\).
 
 \begin{keybox}[title={Why the Day-Level Model Still Matches the Literature}]
 The literature does not require a slot index to create delay feedback. It requires a congestion
@@ -744,9 +774,11 @@ into the offered delay \(\tau\).
 
 Green and Savin study an appointment queue in which no-show behavior worsens with the backlog seen
 when the appointment is made. Their no-show curve is an exponential-saturation function of a
-congestion measure. The v2 model uses the same shape, but evaluates it on the calendar delay:
+congestion measure. The v2 baseline deliberately simplifies that behavior to a step function
+\(\xi_i(\tau)\) so the daily progression stays easy to read, but it keeps the Green-Savin shape as
+the advanced option
 \[
-\xi_i(\tau)
+\tilde{\xi}_i(\tau)
 =
 \gamma_{i,\max}
 -
@@ -756,7 +788,7 @@ congestion measure. The v2 model uses the same shape, but evaluates it on the ca
 The mapping is:
 \begin{itemize}[nosep]
     \item their backlog variable maps to the FCFS delay implied by \(X^D\);
-    \item their no-show mechanism maps to \(\xi_i(\tau)\);
+    \item their no-show mechanism maps directly to \(\tilde{\xi}_i(\tau)\), while the baseline \(\xi_i(\tau)\) is a step approximation used for the first FCFS experiments;
     \item their homogeneous queue is extended here to multiple classes through \(i\);
     \item v2 also adds explicit balking and pre-appointment cancellation.
 \end{itemize}
@@ -779,7 +811,7 @@ future optimization layer is added.
 The mapping is:
 \begin{itemize}[nosep]
     \item their panel size / demand pressure maps to total daily arrival rate \(\lambda\);
-    \item their show-up probability maps to \(1-\xi_i(\tau)\);
+    \item their show-up probability maps to \(1-\xi_i(\tau)\) in the baseline and \(1-\tilde{\xi}_i(\tau)\) in the more detailed variant;
     \item their capacity decision maps here to fixed daily capacity \(S\);
     \item their overbooking decision is not active in the v2 FCFS baseline.
 \end{itemize}
@@ -804,7 +836,7 @@ full.
 The mapping is:
 \begin{itemize}[nosep]
     \item Liu's appointment window \(K\) maps to the simulator horizon \(H\);
-    \item delay-sensitive attendance maps to \(\xi_i(\tau)\);
+    \item delay-sensitive attendance maps to \(\xi_i(\tau)\) in the baseline and to \(\tilde{\xi}_i(\tau)\) in the more detailed variant;
     \item the no-offer event appears when the FCFS search over \(r=1,\dots,H-1\) finds no capacity;
     \item optimizing \(H\) is a later experiment, not part of the current FCFS-only baseline.
 \end{itemize}

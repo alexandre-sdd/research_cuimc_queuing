@@ -8,6 +8,7 @@ from .behaviors import (
     linear_taper_cancellation,
     logistic_balking,
     step_balking,
+    step_no_show,
 )
 from .core import PatientClassConfig, SimulationConfig, SimulationResult, simulate
 from .policies import (
@@ -19,6 +20,7 @@ from .policies import (
 )
 from .presets import (
     ADVANCED_CANCELLATION_OPTIONS,
+    ADVANCED_NO_SHOW_OPTIONS,
     BALKING_OPTIONS,
     CANCELLATION_OPTIONS,
     CLASS_DETAILS,
@@ -40,6 +42,7 @@ from .sweeps import (
 __all__ = [
     "AllocationPolicy",
     "ADVANCED_CANCELLATION_OPTIONS",
+    "ADVANCED_NO_SHOW_OPTIONS",
     "BALKING_OPTIONS",
     "CANCELLATION_OPTIONS",
     "CancellationFn",
@@ -72,4 +75,5 @@ __all__ = [
     "simulate_replications",
     "split_two_class_arrival_rates",
     "step_balking",
+    "step_no_show",
 ]

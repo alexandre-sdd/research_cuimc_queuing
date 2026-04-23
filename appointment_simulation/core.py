@@ -142,11 +142,13 @@ class PatientClassConfig:
     Behavioral and demand parameters for one patient class.
 
     The three behavior fields mirror the note:
-    ``b_i(\\tau)``, scalar ``\\phi_i``, and ``\\xi_i(\\tau)``.
+    ``b_i(\\tau)``, scalar ``\\phi_i``, and baseline ``\\xi_i(\\tau)``.
 
     ``arrival_rate`` is the expected number of class-i arrivals per day.
     ``cancel_probability`` is usually the scalar daily probability ``phi_i``.
     A callable advanced rule ``tilde_phi_i(tau, r)`` is also supported.
+    ``no_show_probability`` usually represents the baseline step ``xi_i(tau)``,
+    though advanced ``tilde_xi_i(tau)`` rules are also valid callables.
     """
     class_id: int
     arrival_rate: float

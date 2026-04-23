@@ -4,7 +4,7 @@ from typing import Any
 
 import pandas as pd
 
-from .behaviors import green_savin_no_show, linear_taper_cancellation, logistic_balking, step_balking
+from .behaviors import green_savin_no_show, linear_taper_cancellation, logistic_balking, step_balking, step_no_show
 from .core import PatientClassConfig, SimulationConfig
 from .sweeps import split_two_class_arrival_rates
 
@@ -40,15 +40,33 @@ BALKING_OPTIONS: dict[str, dict[str, Any]] = {
 
 
 NO_SHOW_OPTIONS: dict[str, dict[str, Any]] = {
+    "step_access": {
+        "description": "Baseline step no-show around a practical access threshold for each class.",
+        "class_specs": {
+            1: {"threshold": 21, "low": 0.01, "high": 0.31},
+            2: {"threshold": 14, "low": 0.15, "high": 0.51},
+        },
+    },
+    "step_more_delay_sensitive": {
+        "description": "A stronger step no-show response after the access threshold.",
+        "class_specs": {
+            1: {"threshold": 18, "low": 0.02, "high": 0.38},
+            2: {"threshold": 12, "low": 0.18, "high": 0.62},
+        },
+    },
+}
+
+
+ADVANCED_NO_SHOW_OPTIONS: dict[str, dict[str, Any]] = {
     "source_aligned": {
-        "description": "Green-Savin style curves close to the literature examples already used in the note.",
+        "description": "Advanced Green-Savin style curves close to the literature examples used in the earlier note.",
         "class_specs": {
             1: {"gamma_0": 0.01, "gamma_max": 0.31, "sensitivity": 50.0},
             2: {"gamma_0": 0.15, "gamma_max": 0.51, "sensitivity": 9.0},
         },
     },
     "more_delay_sensitive": {
-        "description": "A stronger delay effect to stress-test the feedback loop.",
+        "description": "Advanced stronger delay-sensitive no-show curves to stress-test the feedback loop.",
         "class_specs": {
             1: {"gamma_0": 0.02, "gamma_max": 0.38, "sensitivity": 28.0},
             2: {"gamma_0": 0.18, "gamma_max": 0.62, "sensitivity": 6.0},
@@ -110,7 +128,14 @@ def _build_balking_function(option_name: str, class_id: int):
 
 
 def _build_no_show_function(option_name: str, class_id: int):
-    spec = NO_SHOW_OPTIONS[option_name]["class_specs"][class_id]
+    if option_name in NO_SHOW_OPTIONS:
+        spec = NO_SHOW_OPTIONS[option_name]["class_specs"][class_id]
+        return step_no_show(
+            threshold=int(spec["threshold"]),
+            low_delay_probability=float(spec["low"]),
+            high_delay_probability=float(spec["high"]),
+        )
+    spec = ADVANCED_NO_SHOW_OPTIONS[option_name]["class_specs"][class_id]
     return green_savin_no_show(
         gamma_0=float(spec["gamma_0"]),
         gamma_max=float(spec["gamma_max"]),
@@ -167,6 +192,22 @@ def behavior_option_frame() -> pd.DataFrame:
                     "label": CLASS_DETAILS[class_id]["label"],
                     "description": option["description"],
                     "details": (
+                        f"step threshold={spec['threshold']}, low={spec['low']:.2f}, "
+                        f"high={spec['high']:.2f}"
+                    ),
+                }
+            )
+
+    for option_name, option in ADVANCED_NO_SHOW_OPTIONS.items():
+        for class_id, spec in option["class_specs"].items():
+            records.append(
+                {
+                    "family": "advanced_no_show",
+                    "option": option_name,
+                    "class_id": class_id,
+                    "label": CLASS_DETAILS[class_id]["label"],
+                    "description": option["description"],
+                    "details": (
                         f"gamma_0={spec['gamma_0']:.2f}, gamma_max={spec['gamma_max']:.2f}, "
                         f"sensitivity={spec['sensitivity']:.0f}"
                     ),
@@ -194,13 +235,13 @@ def make_two_class_classes(
     total_lambda: float = 6.0,
     class_1_share: float = 7 / 12,
     balking_option: str = "step_access",
-    no_show_option: str = "source_aligned",
+    no_show_option: str = "step_access",
     cancellation_option: str = "moderate",
 ) -> tuple[PatientClassConfig, PatientClassConfig]:
     """Build the two-class daily-arrival configuration used in the notebooks."""
     if balking_option not in BALKING_OPTIONS:
         raise ValueError(f"unknown balking option: {balking_option}")
-    if no_show_option not in NO_SHOW_OPTIONS:
+    if no_show_option not in NO_SHOW_OPTIONS and no_show_option not in ADVANCED_NO_SHOW_OPTIONS:
         raise ValueError(f"unknown no-show option: {no_show_option}")
     if cancellation_option not in CANCELLATION_OPTIONS:
         raise ValueError(f"unknown cancellation option: {cancellation_option}")

@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 
 from appointment_simulation import (
+    ADVANCED_NO_SHOW_OPTIONS,
     BALKING_OPTIONS,
     CANCELLATION_OPTIONS,
     ClassWindowPolicy,
@@ -28,6 +29,7 @@ from appointment_simulation import (
     simulate,
     split_two_class_arrival_rates,
     step_balking,
+    step_no_show,
 )
 from appointment_simulation.behaviors import exponential_no_show
 
@@ -450,6 +452,14 @@ def test_green_savin_wrapper_matches_exponential_shape() -> None:
     assert fn(200) <= 0.31
 
 
+def test_step_no_show_changes_probability_at_threshold() -> None:
+    fn = step_no_show(threshold=7, low_delay_probability=0.05, high_delay_probability=0.35)
+    assert fn(0) == 0.05
+    assert fn(6) == 0.05
+    assert fn(7) == 0.35
+    assert fn(14) == 0.35
+
+
 def test_total_lambda_split_and_sweep_use_class_share_parameterization() -> None:
     lambda_1, lambda_2 = split_two_class_arrival_rates(total_lambda=30.0, class_1_share=0.6)
     assert lambda_1 == 18.0
@@ -504,7 +514,7 @@ def test_note_aligned_presets_build_two_realistic_classes() -> None:
     classes = make_two_class_classes(
         class_1_share=0.6,
         balking_option="step_access",
-        no_show_option="source_aligned",
+        no_show_option="step_access",
         cancellation_option="moderate",
     )
 
@@ -514,7 +524,10 @@ def test_note_aligned_presets_build_two_realistic_classes() -> None:
     assert classes[0].label == "MRI-like diagnostic"
     assert classes[1].label == "Behavioral-health follow-up"
     assert 0.0 <= classes[0].balk_probability(0) <= 1.0
-    assert 0.0 <= classes[1].no_show_probability(10) <= 1.0
+    assert classes[0].no_show_probability(20) == NO_SHOW_OPTIONS["step_access"]["class_specs"][1]["low"]
+    assert classes[0].no_show_probability(21) == NO_SHOW_OPTIONS["step_access"]["class_specs"][1]["high"]
+    assert classes[1].no_show_probability(13) == NO_SHOW_OPTIONS["step_access"]["class_specs"][2]["low"]
+    assert classes[1].no_show_probability(14) == NO_SHOW_OPTIONS["step_access"]["class_specs"][2]["high"]
     assert classes[0].cancel_probability == CANCELLATION_OPTIONS["moderate"]["class_specs"][1]["phi"]
     assert classes[1].cancel_probability == CANCELLATION_OPTIONS["moderate"]["class_specs"][2]["phi"]
     assert classes[1].cancel_probability > classes[0].cancel_probability
@@ -522,8 +535,10 @@ def test_note_aligned_presets_build_two_realistic_classes() -> None:
 
 def test_behavior_option_frame_and_model_setup_frame_expose_notebook_inputs() -> None:
     option_frame = behavior_option_frame()
-    assert set(option_frame["family"]) == {"balking", "no_show", "cancellation"}
-    assert set(option_frame["option"]) >= set(BALKING_OPTIONS) | set(NO_SHOW_OPTIONS) | set(CANCELLATION_OPTIONS)
+    assert set(option_frame["family"]) == {"balking", "no_show", "advanced_no_show", "cancellation"}
+    assert set(option_frame["option"]) >= (
+        set(BALKING_OPTIONS) | set(NO_SHOW_OPTIONS) | set(ADVANCED_NO_SHOW_OPTIONS) | set(CANCELLATION_OPTIONS)
+    )
 
     classes = make_two_class_classes()
     setup = model_setup_frame(
@@ -531,7 +546,7 @@ def test_behavior_option_frame_and_model_setup_frame_expose_notebook_inputs() ->
         class_1_share=7 / 12,
         class_configs=classes,
         balking_option="step_access",
-        no_show_option="source_aligned",
+        no_show_option="step_access",
         cancellation_option="moderate",
     )
     config = make_note_config()
